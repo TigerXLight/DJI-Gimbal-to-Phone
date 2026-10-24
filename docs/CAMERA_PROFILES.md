@@ -72,6 +72,23 @@ interactive/keyguard safety, fresh/prepared node validity, required node predica
 and stale-generation rejection. The post-click `rec_status` value remains the
 authoritative REC/Stby verification signal. Profile data does not bypass these checks.
 
-The future Learn Camera wizard is not implemented. A future learned or imported
-profile must still be treated as data subject to validation and explicit adapter
-support; it must not create an arbitrary executable control path.
+## Phase 2B learned profiles
+
+The schema supports a user-learned record control. `recordButtonResourceId`,
+`recordButtonClassName`, `recordButtonText`, and content-description metadata are
+optional individually, but a profile must retain enough identity metadata to be
+deterministically matchable. Learned profiles use `origin=LEARNED`, remain
+`UNTESTED`/unverified, and use `RECORD_TOGGLE` without claiming state verification.
+
+Learning is explicitly package-scoped and requires user confirmation. The persisted
+JSON is written only to the app-private `files/learned_profiles` directory through
+the existing deterministic codec. Built-in IDs/packages cannot be overwritten by a
+learned profile; malformed files, duplicate identities, and unsupported schema
+versions are rejected. Profiles are data only and cannot encode arbitrary executable
+actions, intents, shell commands, or coordinate control.
+
+The generic learned adapter resolves a fresh Accessibility tree for every deliberate
+test action. It requires the exact selected package, interactive/unlocked device,
+one unambiguous usable node, and `ACTION_CLICK`. It never uses the learned node as a
+long-lived stale object. Sony Video Pro remains on the specialized adapter and is
+the only camera application currently hardware-tested.

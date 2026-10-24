@@ -20,9 +20,19 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
 import com.androiddjibridge.core.CameraProfile;
+import com.androiddjibridge.core.AccessibilityTargetMatcher;
+import com.androiddjibridge.core.CameraAccessibilityAction;
+import com.androiddjibridge.core.CameraProfileCandidate;
+import com.androiddjibridge.core.CameraProfileLearningSession;
+import com.androiddjibridge.core.CameraProfileOrigin;
 import com.androiddjibridge.core.ControllerEvent;
+import com.androiddjibridge.core.GenericAccessibilityDecision;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -61,6 +71,9 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
     private static final int UNKNOWN_WINDOW_ID = -1;
 
     private static VideoProKeyAccessibilityService activeInstance;
+
+    private final CameraProfileLearningSession learningSession =
+            new CameraProfileLearningSession();
 
     private String lastAccessibilityEventPackage = "";
     private String effectiveForegroundPackage = "";
@@ -188,6 +201,77 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
         return activeInstance != null;
     }
 
+    public static boolean startLearning(String packageName) {
+        VideoProKeyAccessibilityService instance = activeInstance;
+        if (instance == null) {
+            return false;
+        }
+        boolean started = instance.learningSession.start(packageName);
+        instance.log(started
+                ? "LEARN_MODE started targetPackage=" + packageName
+                : "LEARN_MODE rejected invalid-target-package");
+        return started;
+    }
+
+    public static void cancelLearning() {
+        VideoProKeyAccessibilityService instance = activeInstance;
+        if (instance != null) {
+            instance.learningSession.cancel();
+            instance.log("LEARN_MODE cancelled");
+        }
+    }
+
+    public static CameraProfileLearningSession.Snapshot getLearningSnapshot() {
+        VideoProKeyAccessibilityService instance = activeInstance;
+        return instance == null
+                ? new CameraProfileLearningSession().snapshot()
+                : instance.learningSession.snapshot();
+    }
+
+    public static boolean confirmLearningCandidate() {
+        VideoProKeyAccessibilityService instance = activeInstance;
+        if (instance == null) {
+            return false;
+        }
+        boolean confirmed = instance.learningSession.confirmCandidate();
+        instance.log(confirmed
+                ? "LEARN_MODE candidate confirmed"
+                : "LEARN_MODE confirmation rejected");
+        return confirmed;
+    }
+
+    public static CameraProfile createConfirmedLearnedProfile(String displayName) {
+        VideoProKeyAccessibilityService instance = activeInstance;
+        if (instance == null) {
+            return null;
+        }
+        try {
+            return instance.learningSession.createConfirmedProfile(displayName);
+        } catch (IllegalStateException error) {
+            instance.log("LEARN_MODE profile creation rejected reason=not-confirmed");
+            return null;
+        }
+    }
+
+    public static boolean isLearningMode() {
+        VideoProKeyAccessibilityService instance = activeInstance;
+        return instance != null && instance.learningSession.isActive();
+    }
+
+    /** Deliberate in-app test path for a saved LEARNED profile; never an exported command. */
+    public static boolean requestGenericProfileTest(CameraProfile profile) {
+        VideoProKeyAccessibilityService instance = activeInstance;
+        if (instance == null || profile == null) {
+            return false;
+        }
+        instance.diagnosticHandler.post(() -> instance.performGenericProfileAction(profile));
+        return true;
+    }
+
+    public static boolean requestGenericProfileAction(CameraProfile profile) {
+        return requestGenericProfileTest(profile);
+    }
+
     /**
      * In-process bridge from the receive-only OM8 listener. The AccessibilityService
      * remains the only owner of the Sony node lookup, safety checks, and click.
@@ -222,6 +306,7 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
             return;
         }
         int type = event.getEventType();
+        captureLearningCandidate(event);
         if (type == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
                 || type == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
             CharSequence packageName = event.getPackageName();
@@ -302,6 +387,82 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
         }
     }
 
+    private void captureLearningCandidate(AccessibilityEvent event) {
+        CameraProfileLearningSession.Snapshot snapshot = learningSession.snapshot();
+        if (snapshot.getState() != CameraProfileLearningSession.State.WAITING_FOR_CONTROL
+                || event.getEventType() != AccessibilityEvent.TYPE_VIEW_CLICKED) {
+            return;
+        }
+        String targetPackage = snapshot.getSelectedPackage();
+        String eventPackage = event.getPackageName() == null
+                ? "" : event.getPackageName().toString().trim();
+        if (targetPackage == null || !targetPackage.equals(eventPackage)) {
+            log("LEARN_CANDIDATE_REJECTED reason=package-scope"
+                    + " eventPackage=" + eventPackage
+                    + " targetPackage=" + targetPackage);
+            return;
+        }
+        AccessibilityNodeInfo source = event.getSource();
+        if (source == null) {
+            log("LEARN_CANDIDATE_REJECTED reason=no-source");
+            return;
+        }
+        AccessibilityNodeInfo parent = null;
+        try {
+            parent = source.getParent();
+            EnumSet<CameraAccessibilityAction> actions =
+                    EnumSet.noneOf(CameraAccessibilityAction.class);
+            for (AccessibilityNodeInfo.AccessibilityAction action : source.getActionList()) {
+                if (action != null
+                        && action.getId() == AccessibilityNodeInfo.ACTION_CLICK) {
+                    actions.add(CameraAccessibilityAction.CLICK);
+                }
+            }
+            CameraProfileCandidate candidate = CameraProfileCandidate.builder()
+                    .packageName(eventPackage)
+                    .resourceId(value(source.getViewIdResourceName()))
+                    .className(value(source.getClassName()))
+                    .text(value(source.getText()))
+                    .contentDescription(value(source.getContentDescription()))
+                    .parentResourceId(parent == null
+                            ? null : value(parent.getViewIdResourceName()))
+                    .parentClassName(parent == null
+                            ? null : value(parent.getClassName()))
+                    .supportedActions(actions)
+                    .clickable(source.isClickable())
+                    .enabled(source.isEnabled())
+                    .visibleToUser(source.isVisibleToUser())
+                    .windowId(source.getWindowId())
+                    .sourceEventType(event.getEventType())
+                    .build();
+            if (!learningSession.captureCandidate(candidate)) {
+                log("LEARN_CANDIDATE_REJECTED reason=not-usable"
+                        + " resourceId=" + value(candidate.getResourceId())
+                        + " class=" + value(candidate.getClassName())
+                        + " clickable=" + candidate.isClickable()
+                        + " enabled=" + candidate.isEnabled()
+                        + " visible=" + candidate.isVisibleToUser()
+                        + " supportsClick=" + candidate.getSupportedActions()
+                                .contains(CameraAccessibilityAction.CLICK));
+                return;
+            }
+            log("LEARN_CANDIDATE_CAPTURED package=" + candidate.getPackageName()
+                    + " resourceId=" + value(candidate.getResourceId())
+                    + " class=" + value(candidate.getClassName())
+                    + " text=" + value(candidate.getText())
+                    + " contentDescription=" + value(candidate.getContentDescription())
+                    + " parentResourceId=" + value(candidate.getParentResourceId())
+                    + " actions=" + candidate.getSupportedActions()
+                    + " windowId=" + candidate.getWindowId());
+        } catch (RuntimeException error) {
+            log("LEARN_CANDIDATE_REJECTED reason=metadata-invalid"
+                    + " error=" + error.getClass().getSimpleName());
+        } finally {
+            recycleNode(parent);
+            recycleNode(source);
+        }
+    }
+
     @Override
     public boolean onKeyEvent(KeyEvent event) {
         logKeyEvent(event);
@@ -360,6 +521,132 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
         if (logger != null) {
             logger.log("ACCESSIBILITY", message);
         }
+    }
+
+    private void performGenericProfileAction(CameraProfile profile) {
+        if (profile == null || profile.getOrigin() != CameraProfileOrigin.LEARNED) {
+            log("GENERIC_PROFILE_TEST_REJECTED reason=not-learned-profile");
+            return;
+        }
+        if (!profile.getRequiredChildResourceIds().isEmpty()) {
+            log("GENERIC_PROFILE_TEST_REJECTED reason=unsupported-child-constraints");
+            return;
+        }
+        if (learningSession.isActive()) {
+            log("GENERIC_PROFILE_TEST_REJECTED reason=learn-mode-active");
+            return;
+        }
+        boolean interactive = isDeviceInteractive();
+        boolean keyguardLocked = isKeyguardLocked();
+        String activePackage = effectiveForegroundPackage == null
+                ? "" : effectiveForegroundPackage;
+        AccessibilityNodeInfo root = null;
+        List<AccessibilityNodeInfo> matches = Collections.emptyList();
+        try {
+            root = getRootInActiveWindow();
+            if (root != null) {
+                matches = findGenericProfileMatches(root, profile);
+            }
+            log("GENERIC_PROFILE_TEST package=" + profile.getPackageName()
+                    + " activePackage=" + activePackage
+                    + " interactive=" + interactive
+                    + " keyguardLocked=" + keyguardLocked
+                    + " rootAvailable=" + (root != null)
+                    + " exactMatches=" + matches.size());
+            if (!GenericAccessibilityDecision.canAttemptClick(
+                    profile.getPackageName(), activePackage, interactive,
+                    keyguardLocked, matches.size())) {
+                log("GENERIC_PROFILE_TEST_REJECTED reason=safety-or-match-count");
+                return;
+            }
+            AccessibilityNodeInfo target = matches.get(0);
+            boolean result = target.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            log("GENERIC_PROFILE_TEST_ACTION_CLICK result=" + result
+                    + " package=" + profile.getPackageName());
+        } catch (RuntimeException error) {
+            log("GENERIC_PROFILE_TEST_REJECTED reason=tree-read-failed"
+                    + " error=" + error.getClass().getSimpleName());
+        } finally {
+            recycleNodes(matches);
+            if (root != null && !matches.contains(root)) {
+                root.recycle();
+            }
+        }
+    }
+
+    private List<AccessibilityNodeInfo> findGenericProfileMatches(
+            AccessibilityNodeInfo root, CameraProfile profile) {
+        List<AccessibilityNodeInfo> matches = new ArrayList<>();
+        if (profile.getRecordButtonResourceId() != null) {
+            List<AccessibilityNodeInfo> nodes = root.findAccessibilityNodeInfosByViewId(
+                    profile.getRecordButtonResourceId());
+            if (nodes == null) {
+                return matches;
+            }
+            for (AccessibilityNodeInfo node : nodes) {
+                if (node != null && matchesGenericNode(profile, node)) {
+                    matches.add(node);
+                } else {
+                    recycleNode(node);
+                }
+            }
+            return matches;
+        }
+
+        ArrayDeque<AccessibilityNodeInfo> pending = new ArrayDeque<>();
+        pending.add(root);
+        while (!pending.isEmpty()) {
+            AccessibilityNodeInfo node = pending.removeFirst();
+            int childCount = node.getChildCount();
+            for (int index = 0; index < childCount; index++) {
+                AccessibilityNodeInfo child = node.getChild(index);
+                if (child != null) {
+                    pending.addLast(child);
+                }
+            }
+            if (matchesGenericNode(profile, node)) {
+                matches.add(node);
+            } else if (node != root) {
+                recycleNode(node);
+            }
+        }
+        return matches;
+    }
+
+    private boolean matchesGenericNode(CameraProfile profile, AccessibilityNodeInfo node) {
+        if (!node.isClickable() || !node.isEnabled() || !node.isVisibleToUser()) {
+            return false;
+        }
+        AccessibilityNodeInfo parent = null;
+        try {
+            parent = node.getParent();
+            return AccessibilityTargetMatcher.matchesRecordTarget(
+                    profile,
+                    value(node.getPackageName()),
+                    value(node.getViewIdResourceName()),
+                    value(node.getClassName()),
+                    value(node.getText()),
+                    value(node.getContentDescription()),
+                    parent == null ? null : value(parent.getViewIdResourceName()),
+                    parent == null ? null : value(parent.getClassName()),
+                    accessibilityActions(node));
+        } finally {
+            recycleNode(parent);
+        }
+    }
+
+    private EnumSet<CameraAccessibilityAction> accessibilityActions(AccessibilityNodeInfo node) {
+        EnumSet<CameraAccessibilityAction> actions =
+                EnumSet.noneOf(CameraAccessibilityAction.class);
+        List<AccessibilityNodeInfo.AccessibilityAction> nodeActions = node.getActionList();
+        if (nodeActions != null) {
+            for (AccessibilityNodeInfo.AccessibilityAction action : nodeActions) {
+                if (action != null && action.getId() == AccessibilityNodeInfo.ACTION_CLICK) {
+                    actions.add(CameraAccessibilityAction.CLICK);
+                }
+            }
+        }
+        return actions;
     }
 
     private void performSonyRecAction(Om8SonyTriggerTiming timing) {
@@ -1902,12 +2189,14 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {
+        learningSession.cancel();
         cancelPreparedRecNodePreparation("service-interrupted");
         invalidateAccessibilityNodeCaches();
     }
 
     @Override
     public void onDestroy() {
+        learningSession.cancel();
         cancelPreparedRecNodePreparation("service-destroyed");
         invalidateAccessibilityNodeCaches();
         unregisterSafetyEventReceiver();

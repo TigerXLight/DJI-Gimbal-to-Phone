@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -29,6 +28,7 @@ public final class CameraProfile {
     private final String packageName;
     private final String recordButtonResourceId;
     private final String recordButtonClassName;
+    private final String recordButtonText;
     private final List<String> allowedContentDescriptions;
     private final List<String> allowedContentDescriptionPatterns;
     private final String parentResourceId;
@@ -50,10 +50,11 @@ public final class CameraProfile {
         stableId = requireProfileId(builder.stableId);
         displayName = requireText(builder.displayName, "displayName");
         packageName = requirePackage(builder.packageName);
-        recordButtonResourceId = requireResourceId(
+        recordButtonResourceId = optionalResourceId(
                 builder.recordButtonResourceId, "recordButtonResourceId");
-        recordButtonClassName = requireClassName(
+        recordButtonClassName = optionalClassName(
                 builder.recordButtonClassName, "recordButtonClassName");
+        recordButtonText = optionalText(builder.recordButtonText, "recordButtonText");
         allowedContentDescriptions = normalizeTextList(
                 builder.allowedContentDescriptions, "allowedContentDescriptions");
         allowedContentDescriptionPatterns = normalizeTextList(
@@ -85,6 +86,14 @@ public final class CameraProfile {
                 && standbyStateValues.isEmpty()) {
             throw new IllegalArgumentException(
                     "state verification requires a state resource or known state values");
+        }
+        if (recordButtonResourceId == null
+                && recordButtonClassName == null
+                && recordButtonText == null
+                && allowedContentDescriptions.isEmpty()
+                && allowedContentDescriptionPatterns.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "record control requires at least one identity field");
         }
         if (schemaVersion != CURRENT_SCHEMA_VERSION) {
             throw new IllegalArgumentException("unsupported profile schema version "
@@ -118,6 +127,10 @@ public final class CameraProfile {
 
     public String getRecordButtonClassName() {
         return recordButtonClassName;
+    }
+
+    public String getRecordButtonText() {
+        return recordButtonText;
     }
 
     public List<String> getAllowedContentDescriptions() {
@@ -238,6 +251,7 @@ public final class CameraProfile {
         private String packageName;
         private String recordButtonResourceId;
         private String recordButtonClassName;
+        private String recordButtonText;
         private Collection<String> allowedContentDescriptions = Collections.emptyList();
         private Collection<String> allowedContentDescriptionPatterns = Collections.emptyList();
         private String parentResourceId;
@@ -264,6 +278,9 @@ public final class CameraProfile {
         }
         public Builder recordButtonClassName(String value) {
             recordButtonClassName = value; return this;
+        }
+        public Builder recordButtonText(String value) {
+            recordButtonText = value; return this;
         }
         public Builder allowedContentDescriptions(Collection<String> value) {
             allowedContentDescriptions = value; return this;
@@ -340,6 +357,17 @@ public final class CameraProfile {
 
     private static String optionalClassName(String value, String field) {
         return value == null || value.trim().isEmpty() ? null : requireClassName(value, field);
+    }
+
+    private static String optionalText(String value, String field) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        String text = value.trim();
+        if (text.indexOf('\n') >= 0 || text.indexOf('\r') >= 0) {
+            throw new IllegalArgumentException(field + " contains a line break");
+        }
+        return text;
     }
 
     private static String requireText(String value, String field) {

@@ -16,5 +16,5 @@ The adapter delegates all node lookup, foreground checks, keyguard/interactive c
 
 ## Future generic profile boundary
 
-A later profile engine may describe a package, record view ID, content-description patterns, optional state node, and supported actions. It must not make coordinate tapping the trusted default. Profile learning is intentionally not implemented in Phase 1.
+A later profile engine may describe a package, record view ID, content-description patterns, optional state node, and supported actions. It must not make coordinate tapping the trusted default. Profile learning was intentionally outside Phase 1; Phase 2B now provides the scoped, confirmation-based Learn Camera discovery workflow described in `LEARN_CAMERA.md`.
 

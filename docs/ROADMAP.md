@@ -21,19 +21,29 @@
 - Sony metadata centralized in the profile while the proven Sony adapter/service
   execution path remains in place.
 
-The interactive Learn Camera wizard is not implemented in Phase 2A. No additional
-camera application is supported or hardware-tested by this phase.
+No additional camera application is supported or hardware-tested by this phase.
+
+## Phase 2B — IMPLEMENTED / DISCOVERY ONLY
+
+- Explicit installed-package selection and visibly scoped Learn Mode.
+- `TYPE_VIEW_CLICKED` source capture restricted to the selected package.
+- Candidate review and explicit confirmation before app-private persistence.
+- Learned-profile validation, deterministic JSON persistence, and conservative
+  generic exact-match test action.
+- No learned recording-state verification, arbitrary fallback, coordinate/gesture
+  control, OCR, screenshot recognition, or broader compatibility claim.
+
+The built-in Sony profile continues through its specialized adapter. Sony Video Pro
+is still the only camera application currently hardware-tested.
 
 ## Later phases
 
 1. Freeze/tag the Phase 1 generic bridge baseline.
-2. Approve a separate Phase 2 specification.
-3. Design and approve the interactive Learn Camera workflow.
-4. Implement profile learning only after that approval.
-5. Test a non-Sony camera application with a separately validated adapter.
-6. Investigate additional DJI OM model drivers separately.
-7. Evaluate CompanionDeviceManager for association/presence without replacing the proven GATT driver.
-8. Research a secure cooperative camera API using intents, a bound service/AIDL, or a client SDK. Do not export unauthenticated recording control.
+2. Test a learned non-Sony camera application only with explicit review and separate
+   hardware evidence.
+3. Investigate additional DJI OM model drivers separately.
+4. Evaluate CompanionDeviceManager for association/presence without replacing the proven GATT driver.
+5. Research a secure cooperative camera API using intents, a bound service/AIDL, or a client SDK. Do not export unauthenticated recording control.
 
 Insta360 synchronization is outside this repository and must not be added as a shortcut to camera-adapter work.
 

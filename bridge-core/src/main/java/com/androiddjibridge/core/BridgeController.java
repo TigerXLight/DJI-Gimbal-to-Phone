@@ -3,7 +3,7 @@ package com.androiddjibridge.core;
 /** Routes normalized gimbal events to the selected camera adapter. */
 public final class BridgeController implements ControllerEventSink {
     private volatile CameraAdapter selectedAdapter;
-    private final CameraProfileRegistry profileRegistry;
+    private volatile CameraProfileRegistry profileRegistry;
     private volatile CameraProfile selectedProfile;
     private volatile GimbalDriver.ConnectionState gimbalConnectionState =
             GimbalDriver.ConnectionState.STOPPED;
@@ -57,6 +57,19 @@ public final class BridgeController implements ControllerEventSink {
         }
         selectedProfile = profile;
         return true;
+    }
+
+    /** Replaces the immutable registry after app-private learned profiles are loaded. */
+    public synchronized void replaceProfileRegistry(CameraProfileRegistry registry) {
+        if (registry == null) {
+            throw new IllegalArgumentException("profileRegistry is required");
+        }
+        CameraProfile current = selectedProfile;
+        CameraProfile replacement = current == null
+                ? null
+                : registry.findByStableId(current.getStableId()).orElse(null);
+        profileRegistry = registry;
+        selectedProfile = replacement;
     }
 
     public void clearSelectedProfile() {

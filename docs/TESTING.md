@@ -98,6 +98,39 @@ Hardware status for this new repository is **HARDWARE REGRESSION: PASS**. On the
 5. Press OM8 Record once from Sony standby; expect one RECORD_DOWN, one Sony action, and SONY_REC_VERIFIED state=REC.
 6. Wait for the UI to settle, press once more; expect Stby.
 7. Optionally press a third time to confirm START again.
+
+## Phase 2B Learn Camera manual validation
+
+1. Enable the bridge Accessibility service.
+2. Open the app and choose **Learn Camera**.
+3. Select the intended installed camera package; system/launcher packages are not
+   offered by the normal list.
+4. Start learning, switch to that camera, and deliberately tap its Record control.
+5. Return to the bridge, review the captured package, resource ID/class/text,
+   content description, actions, state flags, and validation result.
+6. Explicitly confirm and save. The profile is stored privately as `LEARNED` and is
+   not automatically selected.
+7. Use **Test Selected Learned Profile** only with that profile selected and the
+   target camera foreground. The test must resolve one fresh exact match; zero,
+   multiple, wrong-package, unsafe, stale/changed, or unsupported matches fail
+   closed without a click.
+
+Learning captures only the Accessibility clicked source. If Android supplies no
+source node, no candidate is created. A captured control does not discover or invent
+`REC`/`Stby` state verification.
+
+## Phase 2B self-tests
+
+Run all Gradle tests:
+
+~~~cmd
+gradlew.bat test --no-daemon --console=plain
+~~~
+
+The Phase 2B additions cover explicit learning state/confirmation, package scope,
+candidate validation, learned origin and persistence policy, deterministic profile
+round-trip, generic exact-match/ambiguity decisions, and the existing Phase 1/2A
+controller, parser, permission, and Sony key-safety tests.
 8. Go Home and press OM8; expect rejection and no Sony action.
 
 Use the UI Start Bridge path for this complete-bridge procedure. The debug broadcast is listener-only and is useful for OM8 driver diagnostics, not for proving that the camera adapter is selected.

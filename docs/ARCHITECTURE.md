@@ -66,3 +66,24 @@ The service uses the API 26+ connectGatt overload with a main-looper handler, LE
 
 Phase 1 normalizes RECORD_DOWN and RECORD_UP. Future event types are reserved in the core enum but are not decoded or claimed as implemented. The Sony adapter handles only RECORD_DOWN; release never toggles Sony.
 
+## Phase 2B Learn Camera boundary
+
+Learn Mode is a discovery path, not a generic remote-control API. The user explicitly
+selects one installed target package, starts the visibly distinct mode, and taps a
+control in that target. The Accessibility service captures a `TYPE_VIEW_CLICKED`
+source only when its package exactly matches the selected package. The candidate is
+reviewed and explicitly confirmed before a `LEARNED` profile is created and saved.
+
+The resulting profile is data: it contains validated package and Accessibility
+metadata, supported capability `RECORD_TOGGLE`, and no executable commands. It does
+not contain coordinates, gestures, OCR output, shell commands, or arbitrary action
+lists. A later test action resolves a fresh active tree in the selected package,
+requires one exact usable match and `ACTION_CLICK`, and fails closed for zero or
+ambiguous matches. Screen/keyguard safety is required. Sony remains on its
+specialized adapter and proven prepared-node/safety-snapshot path.
+
+Learned profiles are loaded from app-private storage and remain distinct from the
+built-in Sony profile. A learned control and a recording-state verifier are separate:
+the workflow does not invent `REC`/`Stby` nodes or claim state verification merely
+because a control was captured.
+

@@ -3,13 +3,16 @@
 1. Keep the normal UI Start Bridge path as the documented complete-startup path; treat the debug OM8 broadcast as listener-only.
 2. Phase 2A camera-profile foundation is implemented: one built-in Sony profile,
    versioned data validation, registry lookup, and bridge readiness state.
-3. Specify and review the separate interactive Learn Camera wizard before implementing it.
-4. Test a non-Sony camera app only after a separately approved profile/adapter and
-   hardware evidence exist.
-5. Expand compatibility claims only after evidence.
-6. Investigate additional DJI OM model drivers separately.
-7. Evaluate CompanionDeviceManager/background presence while retaining the direct GATT driver.
+3. Use the Phase 2B Learn Camera workflow only for deliberate discovery and review;
+   do not treat a learned profile as hardware support without evidence.
+4. Test a learned non-Sony camera app only after explicit user review and separate
+   hardware evidence. Recording-state verification remains a separate question.
+5. Expand compatibility claims only after evidence and a dedicated adapter review.
+6. Consider later learning/profile lifecycle work, including stronger persistence
+   policy and adapter validation, without adding arbitrary control fallbacks.
+7. Investigate additional DJI OM model drivers separately.
+8. Evaluate CompanionDeviceManager/background presence while retaining the direct GATT driver.
 
-Do not start Insta360 work, the Learn Camera wizard, generic arbitrary tapping,
-gimbal movement, or a public release from this baseline.
+Do not start Insta360 work, broader camera compatibility claims, generic arbitrary
+tapping, gimbal movement, or a public release from this baseline.
 

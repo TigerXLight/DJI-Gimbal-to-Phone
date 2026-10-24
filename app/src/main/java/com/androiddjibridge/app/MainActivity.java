@@ -2,28 +2,58 @@ package com.androiddjibridge.app;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.androiddjibridge.core.CameraProfile;
+import com.androiddjibridge.core.CameraProfileCandidate;
+import com.androiddjibridge.core.CameraProfileLearningSession;
+import com.androiddjibridge.core.CameraProfileOrigin;
 import com.androiddjibridge.om8.Om8BleListenerService;
+import com.androiddjibridge.sony.VideoProKeyAccessibilityService;
 
-/** Small Phase 1 control surface; it intentionally exposes no DJI command controls. */
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/** Small bridge control surface with an explicit, package-scoped Learn Camera flow. */
 public final class MainActivity extends Activity {
     private static final int REQUEST_BLUETOOTH = 4101;
     private TextView status;
+    private TextView learningStatus;
+    private Spinner profileSpinner;
+    private ArrayAdapter<String> profileChoices;
+    private final List<CameraProfile> displayedProfiles = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(buildView());
         requestNearbyDevicesIfNeeded();
+        refreshProfileList();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (profileSpinner != null) {
+            refreshProfileList();
+            refreshLearningStatus();
+        }
     }
 
     private LinearLayout buildView() {
@@ -32,7 +62,7 @@ public final class MainActivity extends Activity {
         root.setPadding(32, 32, 32, 32);
 
         TextView title = new TextView(this);
-        title.setText("OM Bridge for Android\nPhase 1");
+        title.setText("OM Bridge for Android\nPhase 2B");
         title.setTextSize(24f);
         title.setTextColor(Color.BLACK);
         root.addView(title, matchWrap());
@@ -40,17 +70,42 @@ public final class MainActivity extends Activity {
         TextView explanation = new TextView(this);
         explanation.setText("Direct OM8 BLE bridge; DJI Mimo is not required for normal use.\n"
                 + "Close or release Mimo if it owns the gimbal connection.\n\n"
-                + "Unofficial project. Not affiliated with or endorsed by DJI.\n"
-                + "DJI and Osmo are trademarks of their respective owner.\n\n"
-                + "Current adapter: Sony Video Pro (jp.co.sony.mc.videopro)\n"
-                + "Enable the AccessibilityService for Sony control.");
+                + "Choose a validated camera profile. Learn Camera observes only the\n"
+                + "explicitly selected app's Accessibility click source; it never uses\n"
+                + "coordinates, OCR, screenshots, or arbitrary exported control.\n\n"
+                + "Enable the AccessibilityService for camera control and learning.");
         root.addView(explanation, matchWrap());
 
+        TextView profileLabel = new TextView(this);
+        profileLabel.setText("Selected camera profile:");
+        root.addView(profileLabel, matchWrap());
+
+        profileSpinner = new Spinner(this);
+        profileChoices = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, new ArrayList<>());
+        profileChoices.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        profileSpinner.setAdapter(profileChoices);
+        profileSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(
+                    AdapterView<?> parent, android.view.View view, int position, long id) {
+                if (position >= 0 && position < displayedProfiles.size()) {
+                    CameraProfile profile = displayedProfiles.get(position);
+                    if (((BridgeApplication) getApplication()).selectProfile(
+                            profile.getStableId())) {
+                        updateStatus("Profile selected: " + profileSummary(profile));
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        root.addView(profileSpinner, matchWrap());
+
         status = new TextView(this);
-        status.setText("Bridge status: STOPPED\nGimbal driver: STOPPED\n"
-                + "Camera profile: Sony Video Pro (selected)\n"
-                + "Camera adapter: waiting for AccessibilityService");
-        status.setPadding(0, 24, 0, 24);
+        status.setPadding(0, 24, 0, 12);
         root.addView(status, matchWrap());
 
         Button start = new Button(this);
@@ -67,6 +122,25 @@ public final class MainActivity extends Activity {
         stop.setText("Stop Bridge");
         stop.setOnClickListener(view -> stopBridge());
         root.addView(stop, matchWrap());
+
+        Button learn = new Button(this);
+        learn.setText("Learn Camera");
+        learn.setOnClickListener(view -> chooseLearningTarget());
+        root.addView(learn, matchWrap());
+
+        Button review = new Button(this);
+        review.setText("Review / Confirm Candidate");
+        review.setOnClickListener(view -> reviewCandidate());
+        root.addView(review, matchWrap());
+
+        Button test = new Button(this);
+        test.setText("Test Selected Learned Profile");
+        test.setOnClickListener(view -> testSelectedProfile());
+        root.addView(test, matchWrap());
+
+        learningStatus = new TextView(this);
+        learningStatus.setPadding(0, 12, 0, 0);
+        root.addView(learningStatus, matchWrap());
         return root;
     }
 
@@ -83,6 +157,193 @@ public final class MainActivity extends Activity {
         }
     }
 
+    private void refreshProfileList() {
+        if (profileChoices == null) {
+            return;
+        }
+        BridgeApplication application = (BridgeApplication) getApplication();
+        String currentId = application.getController().getSelectedProfile() == null
+                ? null : application.getController().getSelectedProfile().getStableId();
+        displayedProfiles.clear();
+        displayedProfiles.addAll(application.getProfiles());
+        profileChoices.clear();
+        for (CameraProfile profile : displayedProfiles) {
+            profileChoices.add(profileSummary(profile));
+        }
+        profileChoices.notifyDataSetChanged();
+        int selected = 0;
+        for (int index = 0; index < displayedProfiles.size(); index++) {
+            if (displayedProfiles.get(index).getStableId().equals(currentId)) {
+                selected = index;
+                break;
+            }
+        }
+        if (!displayedProfiles.isEmpty()) {
+            profileSpinner.setSelection(selected, false);
+        }
+    }
+
+    private String profileSummary(CameraProfile profile) {
+        return profile.getDisplayName() + " [" + profile.getOrigin().name()
+                + ", " + profile.getValidationStatus().name() + "]";
+    }
+
+    private void chooseLearningTarget() {
+        List<ApplicationChoice> choices = installedApplicationChoices();
+        if (choices.isEmpty()) {
+            updateLearningStatus("No suitable launcher applications found.");
+            return;
+        }
+        CharSequence[] labels = new CharSequence[choices.size()];
+        for (int index = 0; index < choices.size(); index++) {
+            labels[index] = choices.get(index).label + "\n" + choices.get(index).packageName;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("Select application to learn")
+                .setItems(labels, (dialog, which) -> startLearning(choices.get(which)))
+                .setNegativeButton("Cancel",
+                        (dialog, which) -> VideoProKeyAccessibilityService.cancelLearning())
+                .show();
+    }
+
+    private void startLearning(ApplicationChoice choice) {
+        if (!VideoProKeyAccessibilityService.startLearning(choice.packageName)) {
+            updateLearningStatus("Learn Mode unavailable. Enable the bridge AccessibilityService first.");
+            return;
+        }
+        updateLearningStatus("LEARN MODE ACTIVE for " + choice.packageName
+                + ". Switch to that app and physically tap its Record control once.\n"
+                + "Return here and choose Review / Confirm Candidate.");
+    }
+
+    private void refreshLearningStatus() {
+        CameraProfileLearningSession.Snapshot snapshot =
+                VideoProKeyAccessibilityService.getLearningSnapshot();
+        if (snapshot.getState() == CameraProfileLearningSession.State.CANDIDATE_CAPTURED) {
+            updateLearningStatus("Candidate captured for " + snapshot.getSelectedPackage()
+                    + ". Review it before saving.");
+        } else if (snapshot.getState() == CameraProfileLearningSession.State.CONFIRMED) {
+            updateLearningStatus("Candidate confirmed; save is still required.");
+        }
+    }
+
+    private void reviewCandidate() {
+        CameraProfileLearningSession.Snapshot snapshot =
+                VideoProKeyAccessibilityService.getLearningSnapshot();
+        CameraProfileCandidate candidate = snapshot.getCandidate();
+        if (candidate == null
+                || snapshot.getState() == CameraProfileLearningSession.State.WAITING_FOR_CONTROL) {
+            updateLearningStatus("No usable candidate is waiting for review.");
+            return;
+        }
+        String details = "Package: " + candidate.getPackageName()
+                + "\nResource ID: " + value(candidate.getResourceId())
+                + "\nClass: " + value(candidate.getClassName())
+                + "\nContent description: " + value(candidate.getContentDescription())
+                + "\nText: " + value(candidate.getText())
+                + "\nParent resource: " + value(candidate.getParentResourceId())
+                + "\nParent class: " + value(candidate.getParentClassName())
+                + "\nActions: " + candidate.getSupportedActions()
+                + "\nClickable: " + candidate.isClickable()
+                + "\nEnabled: " + candidate.isEnabled()
+                + "\nVisible: " + candidate.isVisibleToUser()
+                + "\nCandidate usable: " + candidate.isStructurallyUsable()
+                + "\nState verification: NOT LEARNED";
+        new AlertDialog.Builder(this)
+                .setTitle("Review learned Record control")
+                .setMessage(details)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Confirm & Save", (dialog, which) -> confirmAndSave(snapshot))
+                .show();
+    }
+
+    private void confirmAndSave(CameraProfileLearningSession.Snapshot snapshot) {
+        if (snapshot.getState() != CameraProfileLearningSession.State.CONFIRMED
+                && !VideoProKeyAccessibilityService.confirmLearningCandidate()) {
+            updateLearningStatus("Candidate confirmation failed; nothing was saved.");
+            return;
+        }
+        CameraProfile profile = VideoProKeyAccessibilityService
+                .createConfirmedLearnedProfile(applicationLabel(snapshot.getSelectedPackage()));
+        if (profile == null) {
+            updateLearningStatus("Profile creation failed; nothing was saved.");
+            return;
+        }
+        if (!((BridgeApplication) getApplication()).saveLearnedProfile(profile)) {
+            updateLearningStatus("Profile rejected: duplicate, built-in package, or invalid data.");
+            return;
+        }
+        VideoProKeyAccessibilityService.cancelLearning();
+        refreshProfileList();
+        updateLearningStatus("Saved LEARNED / UNTESTED profile " + profile.getStableId()
+                + ". It was not selected automatically.");
+    }
+
+    private void testSelectedProfile() {
+        CameraProfile profile = selectedProfile();
+        if (profile == null) {
+            updateLearningStatus("No selected profile.");
+            return;
+        }
+        if (profile.getOrigin() != CameraProfileOrigin.LEARNED) {
+            updateLearningStatus("Sony remains on its specialized adapter; use the normal Sony hardware path.");
+            return;
+        }
+        BridgeApplication application = (BridgeApplication) getApplication();
+        if (!application.selectProfile(profile.getStableId())
+                || !VideoProKeyAccessibilityService.requestGenericProfileTest(profile)) {
+            updateLearningStatus("Learned profile test could not be queued.");
+            return;
+        }
+        updateLearningStatus("Profile test requested. It will click only one exact, fresh, "
+                + "safety-checked match in " + profile.getPackageName() + ".");
+    }
+
+    private CameraProfile selectedProfile() {
+        int position = profileSpinner == null ? -1 : profileSpinner.getSelectedItemPosition();
+        return position >= 0 && position < displayedProfiles.size()
+                ? displayedProfiles.get(position) : null;
+    }
+
+    private List<ApplicationChoice> installedApplicationChoices() {
+        Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        Map<String, ApplicationChoice> choices = new LinkedHashMap<>();
+        for (ResolveInfo info : getPackageManager().queryIntentActivities(intent, 0)) {
+            String packageName = info.activityInfo == null
+                    ? "" : info.activityInfo.packageName;
+            if (packageName.isEmpty() || packageName.equals(getPackageName())
+                    || isExcludedSystemPackage(packageName)) {
+                continue;
+            }
+            CharSequence label = info.loadLabel(getPackageManager());
+            choices.put(packageName, new ApplicationChoice(
+                    label == null ? packageName : label.toString(), packageName));
+        }
+        List<ApplicationChoice> result = new ArrayList<>(choices.values());
+        result.sort(Comparator.comparing(choice -> choice.label.toLowerCase()));
+        return result;
+    }
+
+    private boolean isExcludedSystemPackage(String packageName) {
+        return packageName.equals("com.android.systemui")
+                || packageName.equals("com.android.settings")
+                || packageName.startsWith("com.android.launcher")
+                || packageName.startsWith("com.sonymobile.launcher")
+                || packageName.contains("inputmethod");
+    }
+
+    private String applicationLabel(String packageName) {
+        if (packageName == null) {
+            return "Learned camera";
+        }
+        try {
+            return getPackageManager().getApplicationLabel(
+                    getPackageManager().getApplicationInfo(packageName, 0)).toString();
+        } catch (PackageManager.NameNotFoundException error) {
+            return packageName;
+        }
+    }
+
     private void startBridge() {
         Intent intent = new Intent(this, Om8BleListenerService.class)
                 .setAction(Om8BleListenerService.ACTION_START_LISTENER);
@@ -92,12 +353,9 @@ public final class MainActivity extends Activity {
             } else {
                 startService(intent);
             }
-            status.setText("Bridge status: STARTING / SCANNING\n"
-                    + "Gimbal driver: scanning for OM8-\n"
-                    + "Camera profile: Sony Video Pro (selected)\n"
-                    + "Complete bridge: waiting for gimbal + camera service");
+            updateStatus("Bridge status: STARTING / SCANNING");
         } catch (SecurityException error) {
-            status.setText("Bridge start rejected: " + error.getMessage());
+            updateStatus("Bridge start rejected: " + error.getMessage());
         }
     }
 
@@ -106,17 +364,43 @@ public final class MainActivity extends Activity {
                 .setAction(Om8BleListenerService.ACTION_STOP_LISTENER);
         try {
             startService(intent);
-            status.setText("Bridge status: STOPPED\nGimbal driver: STOPPED\n"
-                    + "Camera profile: Sony Video Pro (selected)\n"
-                    + "Camera adapter: unavailable");
+            updateStatus("Bridge status: STOPPED");
         } catch (SecurityException error) {
-            status.setText("Bridge stop rejected: " + error.getMessage());
+            updateStatus("Bridge stop rejected: " + error.getMessage());
         }
+    }
+
+    private void updateStatus(String value) {
+        if (status != null) {
+            BridgeApplication application = (BridgeApplication) getApplication();
+            status.setText(value + "\nReadiness: "
+                    + application.getController().getReadiness().getState());
+        }
+    }
+
+    private void updateLearningStatus(String value) {
+        if (learningStatus != null) {
+            learningStatus.setText(value);
+        }
+    }
+
+    private String value(String value) {
+        return value == null || value.isEmpty() ? "<none>" : value;
     }
 
     private ViewGroup.LayoutParams matchWrap() {
         return new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    private static final class ApplicationChoice {
+        private final String label;
+        private final String packageName;
+
+        private ApplicationChoice(String label, String packageName) {
+            this.label = label;
+            this.packageName = packageName;
+        }
     }
 }

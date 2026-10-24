@@ -45,6 +45,11 @@ public final class SonyVideoProProfileSelfTest {
         require(new SonyVideoProCameraAdapter().profile().getStableId()
                         .equals(profile.getStableId()),
                 "adapter/profile identity");
+        SonyVideoProCameraAdapter adapter = new SonyVideoProCameraAdapter();
+        require(adapter.handleControllerEvent(new com.androiddjibridge.core.ControllerEvent(
+                        com.androiddjibridge.core.ControllerEvent.Type.RECORD_UP,
+                        "dji-om8", 1L, 10L, 11L, true, 7L)),
+                "record release remains a handled no-op");
         System.out.println("SonyVideoProProfileSelfTest: PASS");
     }
 

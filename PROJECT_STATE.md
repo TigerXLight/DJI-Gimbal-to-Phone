@@ -38,6 +38,26 @@ Phase 2A does not add the Learn Camera wizard or a generic replacement for the S
 adapter. The profile contains camera metadata; the adapter remains responsible for
 Sony-specific Accessibility execution and safety.
 
+Phase 2B safe Learn Camera workflow is implemented: explicit package selection,
+scoped clicked-source capture, review/confirmation, app-private learned-profile
+persistence, and a conservative generic learned-profile test adapter.
+
+Phase 2B does not replace the Sony adapter. The built-in Sony profile continues
+through `SonyVideoProCameraAdapter` and `VideoProKeyAccessibilityService`, including
+prepared-node, safety-snapshot, verification, and delayed re-arm behavior. Learned
+profiles are `LEARNED`/unverified, require explicit confirmation before persistence,
+and do not imply that recording-state verification was learned. The generic adapter
+is a conservative test path only.
+
+Phase 2A hardware regression is PASS on Sony Xperia 1 IV + DJI Osmo Mobile 8 + Sony
+Video Pro. The tested START sample was callback-to-detection 0.108854 ms,
+callback-to-click 4.994531 ms, bridge-request-to-click 0.354948 ms, verified REC,
+with release duplicate protection and re-arm attempt 1. The tested STOP sample was
+callback-to-detection 0.065208 ms, callback-to-click 0.252031 ms,
+bridge-request-to-click 0.104427 ms, verified Stby, with re-arm attempt 4. The
+4.994531 ms START value is recorded as an observed transient sample, not an
+architecture regression.
+
 ## Claims and limitations
 
 - Supported/proven source device: OM8 only.

@@ -43,6 +43,10 @@ public final class SonyVideoProCameraAdapter implements CameraAdapter {
             state = CameraAdapterState.ACTION_REJECTED;
             return false;
         }
+        if (VideoProKeyAccessibilityService.isLearningMode()) {
+            state = CameraAdapterState.ACTION_REJECTED;
+            return false;
+        }
         if (event.getType() == ControllerEvent.Type.RECORD_UP) {
             // Release is normalized for future adapters but never toggles Sony.
             return true;

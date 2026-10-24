@@ -17,6 +17,7 @@ public final class CameraProfileJsonCodec {
             "packageName",
             "recordButtonResourceId",
             "recordButtonClassName",
+            "recordButtonText",
             "allowedContentDescriptions",
             "allowedContentDescriptionPatterns",
             "parentResourceId",
@@ -46,8 +47,9 @@ public final class CameraProfileJsonCodec {
         field(out, "stableProfileId", quote(profile.getStableId()), true);
         field(out, "displayName", quote(profile.getDisplayName()), true);
         field(out, "packageName", quote(profile.getPackageName()), true);
-        field(out, "recordButtonResourceId", quote(profile.getRecordButtonResourceId()), true);
-        field(out, "recordButtonClassName", quote(profile.getRecordButtonClassName()), true);
+        field(out, "recordButtonResourceId", nullableString(profile.getRecordButtonResourceId()), true);
+        field(out, "recordButtonClassName", nullableString(profile.getRecordButtonClassName()), true);
+        field(out, "recordButtonText", nullableString(profile.getRecordButtonText()), true);
         field(out, "allowedContentDescriptions",
                 stringArray(profile.getAllowedContentDescriptions()), true);
         field(out, "allowedContentDescriptionPatterns",
@@ -99,8 +101,9 @@ public final class CameraProfileJsonCodec {
                 .stableId(string(map, "stableProfileId", true))
                 .displayName(string(map, "displayName", true))
                 .packageName(string(map, "packageName", true))
-                .recordButtonResourceId(string(map, "recordButtonResourceId", true))
-                .recordButtonClassName(string(map, "recordButtonClassName", true))
+                .recordButtonResourceId(string(map, "recordButtonResourceId", false))
+                .recordButtonClassName(string(map, "recordButtonClassName", false))
+                .recordButtonText(string(map, "recordButtonText", false))
                 .allowedContentDescriptions(strings(map, "allowedContentDescriptions"))
                 .allowedContentDescriptionPatterns(
                         strings(map, "allowedContentDescriptionPatterns"))

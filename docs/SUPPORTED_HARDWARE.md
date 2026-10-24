@@ -25,3 +25,8 @@ The built-in Sony profile records the already verified package/resource metadata
 profile's `HARDWARE_TESTED` status applies to the Sony/Xperia/OM8 path documented here,
 not to universal Android or camera-app compatibility.
 
+Learned profiles are discovery candidates only. `LEARNED`/unverified does not change
+this matrix and does not constitute support for the target camera application. A
+separate real-device test is required before any learned profile can be described as
+hardware-tested.
+

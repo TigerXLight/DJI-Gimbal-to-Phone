@@ -111,7 +111,7 @@ The Sony adapter requires the user to enable the bridge AccessibilityService. It
 
 - Insta360 Mic Pro control or synchronization.
 - Gimbal movement, zoom, focus, or arbitrary DJI DUML writes.
-- Generic camera-profile learning.
+- Broader camera-profile compatibility beyond the scoped Phase 2B learning workflow.
 - Universal camera-app support.
 - CompanionDeviceManager replacement for the proven direct GATT driver.
 - DJI Mimo process control.
@@ -138,5 +138,19 @@ adapter or the proven Phase 1 path.
 
 The architecture is designed to support multiple Android camera applications through
 validated profiles/adapters. Sony Video Pro is currently the only hardware-tested
-camera application. The interactive Learn Camera wizard is not implemented.
+camera application.
+
+The Phase 2B Learn Camera workflow is now implemented as a deliberately scoped
+discovery workflow. The user explicitly selects an installed non-system application,
+starts Learn Mode, taps that application's control, reviews the Accessibility
+metadata, explicitly confirms it, and saves the resulting `LEARNED` profile in the
+app-private `files/learned_profiles` directory. A learned profile is unverified and
+does not claim recording-state discovery. Its optional test action uses a fresh,
+exact metadata match and fails closed on wrong packages, unsafe device state, zero
+matches, or ambiguous matches. It never uses coordinates, gestures, OCR, screenshots,
+or arbitrary Accessibility actions. Sony continues to use its specialized adapter;
+the generic learned adapter is not used for the built-in Sony profile.
+
+The workflow is documented in docs/LEARN_CAMERA.md. It is not a universal camera-app
+compatibility claim, and broader compatibility/lifecycle work remains future work.
 

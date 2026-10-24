@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <receiver
+            android:name="com.androiddjibridge.app.Om8DiagnosticReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
+        <receiver
+            android:name="com.androiddjibridge.app.SonyRecDiagnosticReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
+    </application>
+</manifest>

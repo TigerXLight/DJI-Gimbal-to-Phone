@@ -183,8 +183,11 @@ Inspect the result with:
 adb logcat -v time -s VideoProKeyAccessibilityService:I *:S
 ```
 
-Normal return from `sendBroadcast()` is not proof of camera behavior. The
-acceptance result is a single new photograph captured by Photography Pro. See
+Normal return from `sendBroadcast()` is not proof of camera behavior. The real
+Xperia result for this probe was no photograph, so this ordinary-app backend is
+`TESTED_NEGATIVE`. `adb shell input keyevent KEYCODE_CAMERA` did capture a
+photograph, but that is a privileged shell/input path and must not be treated as
+ordinary-app support. See
 [`PHOTOPRO_CAMERA_BUTTON_PROBE.md`](PHOTOPRO_CAMERA_BUTTON_PROBE.md) for the
 receiver/permission evidence and full interpretation.
 

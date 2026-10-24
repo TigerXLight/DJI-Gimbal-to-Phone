@@ -35,8 +35,9 @@ setPackage("com.sonymobile.photopro")
 ```
 
 `sendBroadcast()` returning normally only means Android accepted the send call;
-it does not prove that Photography Pro acted on it. The hardware result is
-whether one new photograph is captured.
+it does not prove that Photography Pro acted on it. On the tested Xperia, the
+probe returned normally but captured no photograph, so this ordinary-app
+CAMERA_BUTTON backend is `TESTED_NEGATIVE`.
 
 ## Debug test
 
@@ -74,5 +75,14 @@ receiver. The available runtime dump did not show a required sender permission
 on that live filter. These observations do not prove that an ordinary app can
 deliver a usable event; the probe and physical one-photo test are required.
 
-The installed APK was inspected only for the narrow receiver/permission
-question. No unrelated Sony internals were reverse-engineered or modified.
+For comparison, `adb shell input keyevent KEYCODE_CAMERA` while Photography Pro
+was foreground did capture a photograph. That is a privileged shell/input path,
+not evidence that this ordinary-app broadcast can inject a camera key. The
+distinction remains unresolved; future work should compare physical shutter,
+shell input, and ordinary broadcast traces, including KeyEvent metadata and any
+framework/Sony intermediary. No production mapping is justified by the shell
+result.
+
+The current research environment did not have `adb` available for a new
+APK/runtime receiver inspection, so no stronger sender-permission or UID claim
+is made here.

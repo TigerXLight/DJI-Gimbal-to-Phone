@@ -88,9 +88,13 @@ screen, and unlocked keyguard. It is not connected to OM8 input, the profile
 schema, or the Sony Video Pro path, and it does not use shell/input injection,
 hidden APIs, coordinates, or retries.
 
-The probe's `sendBroadcast()` return value is not treated as proof of camera
-behavior. The next hardware test must determine whether one new photograph is
-actually captured. No permanent Photography Pro support claim is made.
+The probe's `sendBroadcast()` returned normally but the real-device test
+captured no photograph. The ordinary-app CAMERA_BUTTON backend is therefore
+`TESTED_NEGATIVE`. In contrast, `adb shell input keyevent KEYCODE_CAMERA`
+captured a photograph; that is a privileged shell/input path and is not an
+ordinary-app capability. Photography Pro itself remains an open investigation,
+not an unsupported-app conclusion. No permanent profile or OM8 mapping was
+added.
 
 ## Future normal-use direction
 

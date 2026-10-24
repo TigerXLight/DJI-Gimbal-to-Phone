@@ -38,8 +38,9 @@ is still the only camera application currently hardware-tested.
 
 The Phase 2B selector correction now discovers camera applications through merged
 launchable/video-capture/image-capture routes and targeted package visibility. The
-Xperia 1 IV Photography Pro discovery issue is recorded; Photography Pro remains an
-unverified learning candidate, not a support claim.
+Xperia 1 IV Photography Pro discovery issue is recorded. The ordinary-app
+CAMERA_BUTTON probe is now `TESTED_NEGATIVE`; Photography Pro remains an open
+backend investigation and is not a support claim.
 
 ## Later phases
 

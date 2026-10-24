@@ -167,7 +167,11 @@ The selector bug found on the Xperia 1 IV was caused by querying only
 not candidates. Android evidence confirms `com.sonymobile.photopro` resolves both
 video and image capture, and the built-in `jp.co.sony.mc.videopro` package is also
 made visible for the built-in profile. Listing means only eligible to attempt
-learning, not supported. Photography Pro control remains untested.
+learning, not supported. The ordinary-app `ACTION_CAMERA_BUTTON` probe has
+since been tested negative: shell `KEYCODE_CAMERA` captured a photograph, but
+the package-scoped normal-app DOWN/UP broadcast did not. Photography Pro itself
+is not declared unsupported; the input-path difference remains an open research
+question.
 
 The intended later normal-use direction is setup once, remembered gimbal/profile,
 automatic bridge startup/reconnection where Android permits, and direct use of the

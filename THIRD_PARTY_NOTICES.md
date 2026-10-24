@@ -41,3 +41,18 @@ SOFTWARE.
 
 No GPL, no-license, or other restricted upstream source was copied into the
 Phase 3A production implementation.
+
+## Phase 3B lifecycle attribution
+
+Phase 3B independently implements the Android companion/presence and service
+lifecycle boundary using the following MIT-licensed project as an attributed
+design/source reference:
+
+<https://github.com/ItzDFPlayer/OpenGimbal>
+
+Pinned commit: `6b7f403265d4ef96c9238ecaeed12bf5ce9f711c`.
+
+The adapted ideas are the connect-policy decision boundary, remembered-device
+reconnect lifecycle, and bounded retry policy. The production implementation
+is local Java code adapted to the proven DJI OM8 FFF4 notification driver. No
+HJ360 wire implementation or camera-control fallback was copied.

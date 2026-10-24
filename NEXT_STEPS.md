@@ -11,7 +11,8 @@
 6. Consider later learning/profile lifecycle work, including stronger persistence
    policy and adapter validation, without adding arbitrary control fallbacks.
 7. Investigate additional DJI OM model drivers separately.
-8. Evaluate CompanionDeviceManager/background presence while retaining the direct GATT driver.
+8. Hardware-validate the implemented CompanionDeviceManager/background presence
+   path while retaining the direct GATT driver.
 
 9. Re-test the corrected Learn Camera selector on the Xperia 1 IV and confirm that
    Photography Pro (`com.sonymobile.photopro`) and Video Pro
@@ -23,8 +24,8 @@
     Capture a physical/shell/ordinary-broadcast A/B trace if device tooling is
     available. Do not map OM8 input or create a Photography Pro profile from
     this result.
-11. Implement Phase 3B background/automatic gimbal connection using an explicit
-    association/presence path and the existing connected-device GATT service.
+11. Install and hardware-test Phase 3B association/presence wake-up, power-cycle
+    recovery, Gimbal READY, and the existing Sony START/STOP path.
 
 12. Phase 3A hardware regression is PASS: two OM8 presses produced Sony START/STOP,
     release no-op, REC/Stby verification, prepared-node/safety-snapshot use, and
@@ -34,6 +35,10 @@
     ordinary-app backend is proven for a target camera.
 14. Treat OM8 slider decoding, additional camera adapters, and controller-mapping UI
     as separate future work after Phase 3B.
+
+15. Evaluate Android 36's newer association-based presence request API when the
+    production compile SDK is intentionally raised; the current implementation
+    uses the public API 31-35 address-observation path with a safe fallback.
 
 Do not start Insta360 work, broader camera compatibility claims, generic arbitrary
 tapping, gimbal movement, or a public release from this baseline.

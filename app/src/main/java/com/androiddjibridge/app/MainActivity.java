@@ -3,6 +3,8 @@ package com.androiddjibridge.app;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothDevice;
+import android.companion.CompanionDeviceManager;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -32,6 +34,7 @@ import java.util.List;
 /** Small bridge control surface with an explicit, package-scoped Learn Camera flow. */
 public final class MainActivity extends Activity {
     private static final int REQUEST_BLUETOOTH = 4101;
+    private static final int REQUEST_COMPANION_ASSOCIATION = 4102;
     private TextView status;
     private TextView learningStatus;
     private Spinner profileSpinner;
@@ -49,9 +52,35 @@ public final class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        CompanionAssociationCoordinator.observePresence(this);
         if (profileSpinner != null) {
             refreshProfileList();
             refreshLearningStatus();
+            updateStatus("Automatic OM8: " + CompanionAssociationCoordinator.status(this));
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQUEST_COMPANION_ASSOCIATION) {
+            return;
+        }
+        if (resultCode != Activity.RESULT_OK || data == null) {
+            updateStatus("OM8 association was cancelled; manual Start Bridge remains available.");
+            return;
+        }
+        BluetoothDevice device;
+        if (Build.VERSION.SDK_INT >= 33) {
+            device = data.getParcelableExtra(
+                    CompanionDeviceManager.EXTRA_DEVICE, BluetoothDevice.class);
+        } else {
+            device = data.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE);
+        }
+        if (CompanionAssociationCoordinator.handleActivityResult(this, device)) {
+            updateStatus("OM8 associated; automatic connection wake-up is enabled.");
+        } else {
+            updateStatus("OM8 association result could not be validated.");
         }
     }
 
@@ -61,7 +90,7 @@ public final class MainActivity extends Activity {
         root.setPadding(32, 32, 32, 32);
 
         TextView title = new TextView(this);
-        title.setText("OM Bridge for Android\nPhase 2B");
+        title.setText("OM Bridge for Android\nPhase 3B");
         title.setTextSize(24f);
         title.setTextColor(Color.BLACK);
         root.addView(title, matchWrap());
@@ -69,6 +98,9 @@ public final class MainActivity extends Activity {
         TextView explanation = new TextView(this);
         explanation.setText("Direct OM8 BLE bridge; DJI Mimo is not required for normal use.\n"
                 + "Close or release Mimo if it owns the gimbal connection.\n\n"
+                + "Associate OM8 once to let Android wake the bridge when the gimbal appears.\n"
+                + "The association wakes the existing GATT driver; it does not itself\n"
+                + "connect or subscribe to FFF4. Start Bridge remains a manual recovery path.\n\n"
                 + "Choose a validated camera profile. Learn Camera observes only the\n"
                 + "explicitly selected app's Accessibility click source; it never uses\n"
                 + "coordinates, OCR, screenshots, or arbitrary exported control.\n\n"
@@ -111,6 +143,11 @@ public final class MainActivity extends Activity {
         start.setText("Start Bridge");
         start.setOnClickListener(view -> startBridge());
         root.addView(start, matchWrap());
+
+        Button associate = new Button(this);
+        associate.setText("Associate OM8 for Automatic Connection");
+        associate.setOnClickListener(view -> associateOm8());
+        root.addView(associate, matchWrap());
 
         Button reconnect = new Button(this);
         reconnect.setText("Reconnect");
@@ -416,6 +453,16 @@ public final class MainActivity extends Activity {
         }
     }
 
+    private void associateOm8() {
+        if (!CompanionAssociationCoordinator.beginAssociation(
+                this, REQUEST_COMPANION_ASSOCIATION)) {
+            updateStatus("OM8 association is unavailable on this Android device; "
+                    + "manual Start Bridge remains available.");
+        } else {
+            updateStatus("Searching for an OM8- device for system association...");
+        }
+    }
+
     private void stopBridge() {
         Intent intent = new Intent(this, Om8BleListenerService.class)
                 .setAction(Om8BleListenerService.ACTION_STOP_LISTENER);
@@ -431,7 +478,8 @@ public final class MainActivity extends Activity {
         if (status != null) {
             BridgeApplication application = (BridgeApplication) getApplication();
             status.setText(value + "\nReadiness: "
-                    + application.getController().getReadiness().getState());
+                    + application.getController().getReadiness().getState()
+                    + "\nAutomatic OM8: " + CompanionAssociationCoordinator.status(this));
         }
     }
 

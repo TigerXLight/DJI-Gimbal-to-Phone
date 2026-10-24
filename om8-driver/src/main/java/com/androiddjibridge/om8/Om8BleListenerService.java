@@ -38,6 +38,7 @@ import com.androiddjibridge.core.ControllerEventSink;
 import com.androiddjibridge.core.GimbalDriver;
 import com.androiddjibridge.core.BridgeRuntime;
 import com.androiddjibridge.core.BridgeController;
+import com.androiddjibridge.core.ReconnectBackoff;
 
 import java.util.Locale;
 import java.util.EnumSet;
@@ -51,8 +52,12 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
     private static final String TAG = "Om8BleListenerService";
     public static final String ACTION_START_LISTENER =
             "com.androiddjibridge.OM8_LISTENER_START";
+    public static final String ACTION_AUTO_START_LISTENER =
+            "com.androiddjibridge.OM8_LISTENER_AUTO_START";
     public static final String ACTION_STOP_LISTENER =
             "com.androiddjibridge.OM8_LISTENER_STOP";
+    public static final String EXTRA_START_REASON =
+            "com.androiddjibridge.extra.START_REASON";
 
     private static final int NOTIFICATION_ID = 4201;
     private static final String CHANNEL_ID = "om8_listener";
@@ -401,6 +406,10 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
         }
         if (intent != null && ACTION_START_LISTENER.equals(intent.getAction())) {
             beginListener();
+        } else if (intent != null && ACTION_AUTO_START_LISTENER.equals(intent.getAction())) {
+            log("OM8 automatic listener start reason="
+                    + intent.getStringExtra(EXTRA_START_REASON));
+            beginListenerIfNeeded();
         } else if (intent != null && ACTION_STOP_LISTENER.equals(intent.getAction())) {
             log("OM8 listener stop requested");
             stopListener("explicit-stop");
@@ -511,6 +520,15 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
         retryAttempt = 0;
         scanAttempt = 0;
         startScanAttempt();
+    }
+
+    private void beginListenerIfNeeded() {
+        if (listenerRequested) {
+            log("OM8 automatic listener start ignored; existing lifecycle active state="
+                    + listenerState);
+            return;
+        }
+        beginListener();
     }
 
     private void startScanAttempt() {
@@ -832,9 +850,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
     }
 
     private long nextRetryDelayMs() {
-        int exponent = Math.min(retryAttempt, 5);
-        long delay = RETRY_BASE_DELAY_MS << exponent;
-        return Math.min(delay, RETRY_MAX_DELAY_MS);
+        return ReconnectBackoff.delayForAttempt(retryAttempt + 1);
     }
 
     private void cancelRetry() {

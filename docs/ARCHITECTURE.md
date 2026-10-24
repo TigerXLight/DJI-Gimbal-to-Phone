@@ -141,6 +141,43 @@ The eventual product direction is setup/configuration once, a remembered gimbal 
 selected profile, automatic bridge service/reconnection where Android permits, and
 direct use of the selected camera application. Pairing is not equivalent to bridge
 control: the bridge must establish/manage its own GATT connection and notification
-subscription. Background/foreground-service lifecycle, Bluetooth on/off recovery,
-reboot behavior, and optional CompanionDeviceManager evaluation are future work.
+subscription. Phase 3B implements the initial CompanionDeviceManager presence
+wake-up and connected-device foreground-service lifecycle; broader reboot/process
+death behavior and future API-level refinements remain separate validation work.
+
+## Phase 3B background gimbal lifecycle
+
+Phase 3B separates system presence from the transport owner:
+
+~~~text
+user-approved Companion association
+        -> CompanionDeviceService presence callback
+        -> auto-start existing connectedDevice FGS
+        -> Om8BleListenerService scan/GATT ownership
+        -> FFF0/FFF4/CCCD validation
+        -> Gimbal READY
+        -> independent camera readiness
+~~~
+
+`CompanionAssociationStore` persists only the user-approved OM8 association
+metadata in app-private preferences. Android's companion association is the
+identity authority. A last-observed address is retained only for the legacy
+API 31-35 presence-observation API; it is not hard-coded, permanent identity,
+or a substitute for post-connect GATT validation. The user-facing association
+filter selects `OM8-*` by name; the driver still proves FFF0/FFF4 before READY.
+
+`Om8CompanionPresenceService` is system-bound and does not open GATT or consume
+controller events. `AutoConnectServiceStarter` submits the explicit internal
+auto-start action to the existing `Om8BleListenerService`. The service guards
+`listenerRequested`, scan callbacks, and current GATT identity, so repeated
+presence events cannot create concurrent owners. Existing bounded scan retry,
+Bluetooth on/off recovery, notification watchdog, HIGH-priority request,
+CCCD readiness, and stale-callback handling remain the transport lifecycle.
+
+The default policy is association available -> connect, independent of the
+camera foreground. A future battery-saving policy may gate connection on camera
+activity, but it is not the default. Manual Start Bridge remains available as a
+recovery/diagnostic path. Companion presence is best-effort on Android versions
+where the legacy address-based observation API is available; absence of that
+API does not weaken the direct GATT path.
 

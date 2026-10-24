@@ -34,3 +34,12 @@ fallback behavior. Copyright (c) 2026 Denys and the MIT notice are preserved in
 `THIRD_PARTY_NOTICES.md`; the detailed ledger is in
 `DEPENDENCIES_AND_PROVENANCE.md` and the research workspace adaptation ledger.
 
+## Phase 3B upstream adaptation
+
+Phase 3B uses the OpenGimbal MIT research as an adaptation donor for the pure
+auto-connect policy/retry boundary (`AutoConnectPolicy`, `ReconnectBackoff`). The
+Android Companion Device implementation and OM8 service integration are local
+code. No HJ360 wire protocol, screenshot/coordinate fallback, or OpenGimbal
+transport UUID was copied. See `DEPENDENCIES_AND_PROVENANCE.md` and the research
+`ADAPTATION_LEDGER.json` for the exact upstream commit and adaptation record.
+

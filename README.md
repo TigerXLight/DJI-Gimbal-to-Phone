@@ -113,7 +113,8 @@ The Sony adapter requires the user to enable the bridge AccessibilityService. It
 - Gimbal movement, zoom, focus, or arbitrary DJI DUML writes.
 - Broader camera-profile compatibility beyond the scoped Phase 2B learning workflow.
 - Universal camera-app support.
-- CompanionDeviceManager replacement for the proven direct GATT driver.
+- Replacement of the proven direct GATT driver by CompanionDeviceManager;
+  CompanionDeviceManager is used only as an optional presence wake-up path.
 - DJI Mimo process control.
 
 See docs/ROADMAP.md and NEXT_STEPS.md.
@@ -199,6 +200,24 @@ the OM8 hot path. The Phase 3A mapping structure partially adapts the MIT-licens
 OpenGimbal mapping boundary with attribution; no HJ360 protocol or screenshot,
 coordinate, or gesture fallback was imported. See `LICENSE_MAP.md`,
 `DEPENDENCIES_AND_PROVENANCE.md`, and `THIRD_PARTY_NOTICES.md`.
+
+## Phase 3B — background OM8 connection lifecycle
+
+Use **Associate OM8 for Automatic Connection** once during setup. Android then
+owns the companion association and can wake the system-bound presence callback
+when the `OM8-*` gimbal appears. The callback starts the existing connected-device
+foreground service; that service still performs the real name scan, GATT connect,
+FFF0/FFF4 discovery, FFF4 notification/CCCD setup, and readiness transition.
+
+Pairing or association alone is not GATT control. `OM8 LISTENER READY` means the
+gimbal driver has a validated notification channel; camera profile/adapter
+readiness remains separate. The default policy connects independently of the
+camera foreground. Manual **Start Bridge** remains a recovery/diagnostic path.
+
+The association stores the Android-approved companion identity plus a last-seen
+address only for Android's legacy presence API. The address is not hard-coded or
+trusted as permanent identity. No DJI Mimo process control, FFF5 command write,
+movement command, or new camera adapter is added.
 
 ### Phase 3A hardware validation — PASS
 

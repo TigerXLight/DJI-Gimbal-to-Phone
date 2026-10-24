@@ -13,6 +13,19 @@ is represented without inventing OM8 packets, and persistence is strict,
 versioned JSON with fail-closed defaults. The implementation does not reuse
 OpenGimbal BLE code or camera screenshot/gesture fallbacks.
 
+## Phase 3B lifecycle adaptation
+
+| Upstream repository | Commit | Upstream path/class/method | Local target | Adaptation | Licence | Validation |
+|---|---|---|---|---|---|---|
+| [ItzDFPlayer/OpenGimbal](https://github.com/ItzDFPlayer/OpenGimbal) | `6b7f403265d4ef96c9238ecaeed12bf5ce9f711c` | `app/src/main/java/com/itzdfplayer/opengimbal/gimbal/AutoConnectPolicy.kt`: `AutoConnectPolicy.shouldConnect`; `GimbalManager.kt`: remembered-device/reconnect lifecycle | `bridge-core/AutoConnectPolicy.java`, `bridge-core/ReconnectBackoff.java`, `bridge-core/AssociatedDevice.java`, `app/CompanionAssociationCoordinator.java`, `app/AutoConnectServiceStarter.java`, `om8-driver/Om8BleListenerService.java` | FUNCTIONAL_REIMPLEMENTATION / MODIFIED | MIT; Copyright (c) 2026 Denys | JVM policy tests added; OM8 transport and Sony hardware path remain local and unchanged |
+
+The local implementation uses Android CompanionDeviceManager/CompanionDeviceService
+for user-approved presence wake-up and the existing connected-device foreground
+GATT service for the actual FFF0/FFF4 session. It deliberately does not import
+OpenGimbal's HJ360 protocol, UUIDs, screenshot fallback, coordinate control, or
+gesture fallback. The local retry schedule is bounded and preserves the existing
+OM8 recovery state machine.
+
 ## Existing research-only references
 
 The research workspace retains the broader upstream catalogue and exact commits

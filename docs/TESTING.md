@@ -186,6 +186,35 @@ The required two-press test passed:
 
 This closes Phase 3A as **HARDWARE PASS**. Phase 3B background lifecycle testing is
 separate and must not be inferred from this result.
+
+## Phase 3B lifecycle validation
+
+### Software tests
+
+`AutoConnectPolicySelfTest` covers no-association refusal, Bluetooth-off refusal,
+associated-device start permission, duplicate presence suppression while a driver
+is active, association metadata retention, and bounded retry delays. Existing
+parser, mapping, profile, controller, permission, and Sony tests remain required.
+
+### Setup and hardware test
+
+1. Install the debug APK and grant Nearby Devices/notification permissions if
+   requested.
+2. Enable the bridge AccessibilityService.
+3. Open the bridge and choose **Associate OM8 for Automatic Connection**.
+4. Select the intended `OM8-*` device in Android's system association UI.
+5. Confirm the UI reports the association, then leave the bridge UI/Home.
+6. Power the OM8 off, wait for the current GATT to disappear, then power it on.
+7. Filter logs for `Om8Companion`, `Om8AutoConnect`, and
+   `Om8BleListenerService`. The expected path is presence callback -> automatic
+   foreground-service start -> scan -> GATT -> FFF0/FFF4 -> CCCD -> `OM8 LISTENER READY`.
+8. Open Sony Video Pro and press OM8 Record once for START/REC, then once for
+   STOP/Stby. Confirm release does not create a second action.
+
+If the system lacks the companion setup feature, or an Android version cannot
+observe the stored address, use **Start Bridge** as the documented manual
+fallback. A Bluetooth association does not itself establish GATT or FFF4
+notifications. Do not force-stop DJI Mimo; contention remains a safe retry case.
 8. Go Home and press OM8; expect rejection and no Sony action.
 
 Use the UI Start Bridge path for this complete-bridge procedure. The debug broadcast is listener-only and is useful for OM8 driver diagnostics, not for proving that the camera adapter is selected.

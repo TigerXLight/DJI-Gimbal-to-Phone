@@ -42,6 +42,9 @@ public final class BridgeApplication extends Application {
         controller = new BridgeController(
                 registry, sonyProfile, mappingEngine, new SonyVideoProCameraAdapter());
         BridgeRuntime.install(controller);
+        // Presence observation is a system-managed wake-up path. It does not
+        // itself own GATT or imply that the camera adapter is ready.
+        CompanionAssociationCoordinator.observePresence(this);
     }
 
     public BridgeController getController() {

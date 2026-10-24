@@ -130,7 +130,9 @@ bridge startup/reconnection where Android permits, and direct opening/use of the
 selected camera application. Pairing and bridge GATT operation remain separate:
 pairing alone does not subscribe the bridge to controller notifications. Automatic
 background/foreground-service lifecycle, Bluetooth recovery, reboot behavior, and
-CompanionDeviceManager evaluation remain future work.
+Phase 3B now implements the first CompanionDeviceManager/CompanionDeviceService
+wake-up path and retains the existing connected-device foreground GATT service.
+Broader reboot/process-death behavior remains later lifecycle validation.
 
 ## Claims and limitations
 
@@ -139,8 +141,9 @@ CompanionDeviceManager evaluation remain future work.
 - Current adapter: Sony Video Pro only.
 - No universal DJI, Android-phone, or camera-app support is claimed.
 - No Insta360 implementation is present.
-- Phase 3A did not implement background auto-start, CompanionDeviceManager,
-  slider reverse engineering, Pixel/Samsung adapters, or Photography Pro control.
+- Phase 3B implements initial background auto-start/presence wake-up. Slider
+  reverse engineering, Pixel/Samsung adapters, and Photography Pro control remain
+  out of scope.
 
 ## Source boundary
 
@@ -150,4 +153,25 @@ Phase 3A provenance is recorded in `LICENSE_MAP.md`,
 `DEPENDENCIES_AND_PROVENANCE.md`, and `THIRD_PARTY_NOTICES.md`. The only direct
 upstream adaptation in this phase is the MIT OpenGimbal mapping boundary; the
 OM8 wire path remains local and hardware-proven.
+
+## Phase 3B background lifecycle
+
+Phase 3B adds a user-approved Android Companion Device association and a
+system-bound presence callback. Presence starts the existing connected-device
+foreground GATT service through an explicit internal action; it does not open a
+second GATT connection or replace the proven OM8 driver. The association filter
+uses the `OM8-*` name family, while FFF0/FFF4 discovery, CCCD enablement,
+connection-priority request, and `OM8 LISTENER READY` remain the actual transport
+readiness checks.
+
+The association record is stored in app-private preferences. The system
+association is authoritative; a last-observed Bluetooth address is only a
+legacy presence-observation hint and is never hard-coded or accepted as proof
+of device identity. The default policy connects when the associated gimbal is
+available, even before a camera is foreground. Existing bounded retries,
+Bluetooth on/off handling, watchdog, stale-GATT guards, and manual Start Bridge
+remain available.
+
+Phase 3B hardware status is **PENDING**. It requires the short association,
+background wake-up, power-cycle, Gimbal READY, Sony START/STOP regression.
 

@@ -7,6 +7,10 @@ import com.androiddjibridge.core.BridgeRuntime;
 import com.androiddjibridge.core.CameraProfile;
 import com.androiddjibridge.core.CameraProfileRegistry;
 import com.androiddjibridge.core.CameraProfileOrigin;
+import com.androiddjibridge.core.CameraAction;
+import com.androiddjibridge.core.ControllerTrigger;
+import com.androiddjibridge.core.MappingEngine;
+import com.androiddjibridge.core.MappingStore;
 import com.androiddjibridge.sony.GenericAccessibilityCameraAdapter;
 import com.androiddjibridge.sony.SonyVideoProCameraAdapter;
 import com.androiddjibridge.sony.SonyVideoProProfile;
@@ -21,6 +25,8 @@ import java.util.Set;
 public final class BridgeApplication extends Application {
     private BridgeController controller;
     private LearnedProfileStore learnedProfileStore;
+    private AndroidMappingStore mappingStore;
+    private MappingEngine mappingEngine;
     private CameraProfile sonyProfile;
 
     @Override
@@ -30,9 +36,11 @@ public final class BridgeApplication extends Application {
         Set<String> builtInIds = Collections.singleton(sonyProfile.getStableId());
         Set<String> builtInPackages = Collections.singleton(sonyProfile.getPackageName());
         learnedProfileStore = new LearnedProfileStore(this, builtInIds, builtInPackages);
+        mappingStore = new AndroidMappingStore(this);
+        mappingEngine = new MappingEngine(mappingStore.load());
         CameraProfileRegistry registry = buildRegistry();
         controller = new BridgeController(
-                registry, sonyProfile, new SonyVideoProCameraAdapter());
+                registry, sonyProfile, mappingEngine, new SonyVideoProCameraAdapter());
         BridgeRuntime.install(controller);
     }
 
@@ -64,6 +72,28 @@ public final class BridgeApplication extends Application {
             return false;
         }
         controller.replaceProfileRegistry(buildRegistry());
+        return true;
+    }
+
+    public MappingStore getMappingStore() {
+        return mappingEngine.getStore();
+    }
+
+    public boolean setMapping(ControllerTrigger trigger, CameraAction action) {
+        MappingStore replacement = mappingEngine.getStore().withMapping(trigger, action);
+        if (!mappingStore.save(replacement)) {
+            return false;
+        }
+        mappingEngine.setStore(replacement);
+        return true;
+    }
+
+    public boolean resetMappings() {
+        MappingStore replacement = mappingEngine.getStore().reset();
+        if (!mappingStore.save(replacement)) {
+            return false;
+        }
+        mappingEngine.setStore(replacement);
         return true;
     }
 

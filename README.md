@@ -179,3 +179,24 @@ selected camera app. Bluetooth pairing alone is not camera control: the bridge m
 still establish its own GATT connection and subscribe to the controller notifications.
 That lifecycle is future work and is not implemented by this selector fix.
 
+## Phase 3A mapping foundation
+
+Phase 3A adds a pure, controller-neutral mapping boundary:
+
+~~~text
+GimbalDriver -> ControllerEvent -> MappingEngine -> CameraAction -> CameraAdapter
+~~~
+
+The default mapping is `RECORD_PRESS -> RECORD_TOGGLE`; `RECORD_RELEASE` is an
+explicit no-op. The action vocabulary also prepares photo, focus, zoom, lens, and
+continuous-axis semantics without claiming that the OM8 emits those unmeasured
+inputs. Mappings are strict versioned JSON stored in app-private preferences;
+malformed, future, unknown, or unsupported values fail closed.
+
+Sony Video Pro remains on its specialized adapter and existing Accessibility
+service. The mapping lookup is in-memory and does not add Accessibility work to
+the OM8 hot path. The Phase 3A mapping structure partially adapts the MIT-licensed
+OpenGimbal mapping boundary with attribution; no HJ360 protocol or screenshot,
+coordinate, or gesture fallback was imported. See `LICENSE_MAP.md`,
+`DEPENDENCIES_AND_PROVENANCE.md`, and `THIRD_PARTY_NOTICES.md`.
+

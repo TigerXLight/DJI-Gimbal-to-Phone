@@ -9,6 +9,8 @@ om8-driver
              v
 bridge-core
     ControllerEvent
+    MappingEngine / MappingStore
+    CameraAction
     BridgeController
     CameraProfileRegistry / selected CameraProfile
     BridgeReadiness
@@ -53,12 +55,49 @@ GIMBAL_READY + CAMERA_PROFILE_SELECTED + CAMERA_SERVICE_AVAILABLE = BRIDGE_READY
 Bridge path selects Sony and starts the complete bridge; the debug listener broadcast
 remains driver/listener-only.
 
+## Phase 3A mapping boundary
+
+The production event path is now:
+
+~~~text
+GimbalDriver
+    -> ControllerEvent
+    -> MappingEngine / MappingStore
+    -> CameraAction
+    -> selected CameraAdapter
+~~~
+
+`ControllerEvent` remains the normalized transport-neutral event, including the
+existing `RECORD_DOWN`/`RECORD_UP` pair. `ControllerTrigger` translates it into
+semantic mapping keys. `MappingEngine` performs an in-memory lookup and returns a
+`MappingDecision`; it performs no Android or Accessibility work. The default
+`RECORD_PRESS -> RECORD_TOGGLE` mapping preserves the Phase 1 behavior, while
+`RECORD_RELEASE -> NONE` prevents a duplicate action.
+
+`CameraAdapter.supports(CameraAction)` and `execute(CameraAction, ControllerEvent)`
+are the semantic output contract. Sony implements only `RECORD_TOGGLE` and routes
+that action into the existing specialized adapter/service path. Unsupported
+actions fail closed. `CameraAdapter.handleControllerEvent` remains as a narrow
+adapter-level compatibility entry point for existing regression tests; the bridge
+controller uses the action contract.
+
+`MappingStore` is immutable and defaults every unconfigured trigger to `NONE`.
+`MappingJsonCodec` is strict, deterministic, schema-versioned data parsing, and
+`AndroidMappingStore` stores it only in app-private `SharedPreferences`. No
+mapping can contain an intent, shell command, package/resource target, or arbitrary
+Accessibility action. Axis actions are model capacity only; no unmeasured OM8
+slider packet is interpreted.
+
 ## Module boundaries
 
 - bridge-core: Java-only generic interfaces and event routing.
 - om8-driver: Android BLE service, OM8 DUML parser, rising-edge detector, recovery, watchdog, diagnostics, and Android permission decisions.
 - camera-adapters/sony-videopro: Sony package/node constants, AccessibilityService, prepared REC node, local safety snapshot, post-click verification, and re-arm logic.
 - app: Android entry point and user-facing start/stop/reconnect controls.
+
+Phase 3A provenance for the mapping boundary is documented in the repository-root
+licence/provenance files. Its partial structural donor is the MIT-licensed
+OpenGimbal mapping model; HJ360 BLE code and camera fallback behavior are not used.
 
 The service uses the API 26+ connectGatt overload with a main-looper handler, LE transport, and the existing PHY behavior. Lifecycle callbacks are protected by current-GATT identity/generation checks. Only the standard FFF4 CCCD write is performed; no DJI command data is written.
 

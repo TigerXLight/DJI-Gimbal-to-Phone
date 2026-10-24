@@ -1,6 +1,7 @@
 package com.androiddjibridge.sony;
 
 import com.androiddjibridge.core.CameraAdapter;
+import com.androiddjibridge.core.CameraAction;
 import com.androiddjibridge.core.CameraAdapterState;
 import com.androiddjibridge.core.CameraProfile;
 import com.androiddjibridge.core.ControllerEvent;
@@ -43,11 +44,16 @@ public final class GenericAccessibilityCameraAdapter implements CameraAdapter {
     }
 
     @Override
-    public boolean handleControllerEvent(ControllerEvent event) {
-        if (event == null || event.getType() == ControllerEvent.Type.RECORD_UP) {
-            return event != null;
-        }
-        if (event.getType() != ControllerEvent.Type.RECORD_DOWN
+    public boolean supports(CameraAction action) {
+        return action == CameraAction.RECORD_TOGGLE
+                && profile.supports(com.androiddjibridge.core.CameraCapability.RECORD_TOGGLE);
+    }
+
+    @Override
+    public boolean execute(CameraAction action, ControllerEvent event) {
+        if (action != CameraAction.RECORD_TOGGLE
+                || event == null
+                || event.getType() != ControllerEvent.Type.RECORD_DOWN
                 || !isAvailable()
                 || VideoProKeyAccessibilityService.isLearningMode()) {
             state = CameraAdapterState.ACTION_REJECTED;
@@ -59,6 +65,14 @@ public final class GenericAccessibilityCameraAdapter implements CameraAdapter {
                 ? CameraAdapterState.ACTION_ACCEPTED
                 : CameraAdapterState.ACTION_REJECTED;
         return accepted;
+    }
+
+    @Override
+    public boolean handleControllerEvent(ControllerEvent event) {
+        if (event == null || event.getType() == ControllerEvent.Type.RECORD_UP) {
+            return event != null;
+        }
+        return execute(CameraAction.RECORD_TOGGLE, event);
     }
 
     @Override

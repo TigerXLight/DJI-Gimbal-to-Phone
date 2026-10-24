@@ -77,6 +77,15 @@ public final class BridgeControllerSelfTest {
         @Override public boolean isAvailable() { return available; }
         @Override public CameraProfile profile() { return profile; }
         @Override public void prepare() { }
+        @Override public boolean supports(CameraAction action) {
+            return action == CameraAction.RECORD_TOGGLE;
+        }
+        @Override public boolean execute(CameraAction action, ControllerEvent event) {
+            if (action != CameraAction.RECORD_TOGGLE) {
+                return false;
+            }
+            return handleControllerEvent(event);
+        }
         @Override public boolean handleControllerEvent(ControllerEvent event) {
             lastEvent = event;
             calls++;

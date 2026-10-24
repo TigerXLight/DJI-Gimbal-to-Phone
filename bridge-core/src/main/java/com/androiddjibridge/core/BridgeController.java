@@ -5,25 +5,38 @@ public final class BridgeController implements ControllerEventSink {
     private volatile CameraAdapter selectedAdapter;
     private volatile CameraProfileRegistry profileRegistry;
     private volatile CameraProfile selectedProfile;
+    private final MappingEngine mappingEngine;
     private volatile GimbalDriver.ConnectionState gimbalConnectionState =
             GimbalDriver.ConnectionState.STOPPED;
 
     public BridgeController(CameraAdapter selectedAdapter) {
-        this(CameraProfileRegistry.empty(), null, selectedAdapter);
+        this(CameraProfileRegistry.empty(), null, new MappingEngine(), selectedAdapter);
     }
 
     public BridgeController(
             CameraProfileRegistry profileRegistry,
             CameraProfile selectedProfile,
             CameraAdapter selectedAdapter) {
+        this(profileRegistry, selectedProfile, new MappingEngine(), selectedAdapter);
+    }
+
+    public BridgeController(
+            CameraProfileRegistry profileRegistry,
+            CameraProfile selectedProfile,
+            MappingEngine mappingEngine,
+            CameraAdapter selectedAdapter) {
         if (profileRegistry == null) {
             throw new IllegalArgumentException("profileRegistry is required");
+        }
+        if (mappingEngine == null) {
+            throw new IllegalArgumentException("mappingEngine is required");
         }
         if (selectedProfile != null && !profileRegistry.contains(selectedProfile)) {
             throw new IllegalArgumentException("selected profile is not registered");
         }
         this.profileRegistry = profileRegistry;
         this.selectedProfile = selectedProfile;
+        this.mappingEngine = mappingEngine;
         this.selectedAdapter = selectedAdapter;
     }
 
@@ -48,6 +61,10 @@ public final class BridgeController implements ControllerEventSink {
 
     public CameraProfile getSelectedProfile() {
         return selectedProfile;
+    }
+
+    public MappingEngine getMappingEngine() {
+        return mappingEngine;
     }
 
     public boolean selectProfile(String stableId) {
@@ -101,6 +118,18 @@ public final class BridgeController implements ControllerEventSink {
         if (adapter == null || event == null) {
             return false;
         }
-        return adapter.handleControllerEvent(event);
+        MappingDecision decision = mappingEngine.resolve(event);
+        if (!decision.isRecognizedTrigger()) {
+            return false;
+        }
+        if (!decision.hasAction()) {
+            // RECORD_RELEASE is intentionally a recognized no-op by default.
+            return true;
+        }
+        CameraAction action = decision.getAction();
+        if (!adapter.supports(action)) {
+            return false;
+        }
+        return adapter.execute(action, event);
     }
 }

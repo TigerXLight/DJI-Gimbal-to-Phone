@@ -42,6 +42,21 @@ Xperia 1 IV Photography Pro discovery issue is recorded. The ordinary-app
 CAMERA_BUTTON probe is now `TESTED_NEGATIVE`; Photography Pro remains an open
 backend investigation and is not a support claim.
 
+## Phase 3A — IMPLEMENTED / HARDWARE REGRESSION PENDING
+
+- Pure `ControllerEvent -> MappingEngine -> CameraAction -> CameraAdapter`
+  foundation.
+- Default `RECORD_PRESS -> RECORD_TOGGLE` and release no-op behavior.
+- Strict deterministic versioned mapping persistence in app-private preferences.
+- Semantic camera-action capacity for photo, focus, zoom, lens, and continuous axes.
+- Sony remains on its specialized adapter; no Sony hot-path Accessibility logic was
+  moved into the generic mapping layer.
+- MIT OpenGimbal mapping-boundary adaptation with attribution and notices.
+
+Phase 3A is not hardware PASS until the planned two-press Sony START/STOP regression
+is recorded. Background auto-start, CompanionDeviceManager, OM8 slider decoding,
+FFF5 writes, and new camera adapters remain later work.
+
 ## Later phases
 
 1. Freeze/tag the Phase 1 generic bridge baseline.

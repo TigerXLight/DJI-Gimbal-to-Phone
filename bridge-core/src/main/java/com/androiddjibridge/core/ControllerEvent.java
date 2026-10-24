@@ -8,6 +8,10 @@ public final class ControllerEvent {
         ZOOM_IN,
         ZOOM_OUT,
         FOCUS,
+        SLIDER_UP,
+        SLIDER_DOWN,
+        SLIDER_PRESS,
+        SLIDER_AXIS,
         JOYSTICK,
         MODE
     }
@@ -19,6 +23,7 @@ public final class ControllerEvent {
     private final long eventDetectedAtNanos;
     private final boolean callbackOnMainLooper;
     private final long callbackThreadId;
+    private final double axisValue;
 
     public ControllerEvent(Type type,
                            String sourceDriverId,
@@ -27,6 +32,18 @@ public final class ControllerEvent {
                            long eventDetectedAtNanos,
                            boolean callbackOnMainLooper,
                            long callbackThreadId) {
+        this(type, sourceDriverId, sequence, callbackEnteredAtNanos, eventDetectedAtNanos,
+                callbackOnMainLooper, callbackThreadId, 0.0d);
+    }
+
+    public ControllerEvent(Type type,
+                           String sourceDriverId,
+                           long sequence,
+                           long callbackEnteredAtNanos,
+                           long eventDetectedAtNanos,
+                           boolean callbackOnMainLooper,
+                           long callbackThreadId,
+                           double axisValue) {
         this.type = type;
         this.sourceDriverId = sourceDriverId == null ? "" : sourceDriverId;
         this.sequence = sequence;
@@ -34,6 +51,7 @@ public final class ControllerEvent {
         this.eventDetectedAtNanos = eventDetectedAtNanos;
         this.callbackOnMainLooper = callbackOnMainLooper;
         this.callbackThreadId = callbackThreadId;
+        this.axisValue = axisValue;
     }
 
     public Type getType() {
@@ -62,5 +80,13 @@ public final class ControllerEvent {
 
     public long getCallbackThreadId() {
         return callbackThreadId;
+    }
+
+    /**
+     * Normalized continuous input value. It is meaningful only for an axis event;
+     * OM8 currently emits no measured slider axis event in this project.
+     */
+    public double getAxisValue() {
+        return axisValue;
     }
 }

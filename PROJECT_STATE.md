@@ -12,6 +12,10 @@
 - Phase 2A camera-profile foundation: immutable `CameraProfile`, registry, versioned
   JSON codec/validation, deterministic metadata matcher, and bridge readiness model.
 - Exactly one built-in profile: Sony Video Pro, selected by default by the app.
+- Phase 3A mapping foundation: semantic `CameraAction`, normalized
+  `ControllerTrigger`, pure `MappingEngine`, strict versioned mapping JSON, and
+  app-private mapping persistence. The default is Record press -> Record toggle;
+  Record release remains a no-op.
 
 ## Software status
 
@@ -48,6 +52,13 @@ prepared-node, safety-snapshot, verification, and delayed re-arm behavior. Learn
 profiles are `LEARNED`/unverified, require explicit confirmation before persistence,
 and do not imply that recording-state verification was learned. The generic adapter
 is a conservative test path only.
+
+Phase 3A does not change the OM8 parser, GATT lifecycle, Sony prepared-node or
+safety-snapshot path, or Sony verification/re-arm behavior. `BridgeController`
+now resolves a `ControllerEvent` to a `CameraAction` before invoking an adapter;
+Sony accepts only `RECORD_TOGGLE` and still owns the complete specialized action
+path. Continuous-axis action capacity is modelled only; no unmeasured OM8 slider
+packet is decoded.
 
 Phase 2A hardware regression is PASS on Sony Xperia 1 IV + DJI Osmo Mobile 8 + Sony
 Video Pro. The tested START sample was callback-to-detection 0.108854 ms,
@@ -112,8 +123,15 @@ CompanionDeviceManager evaluation remain future work.
 - Current adapter: Sony Video Pro only.
 - No universal DJI, Android-phone, or camera-app support is claimed.
 - No Insta360 implementation is present.
+- Phase 3A has not implemented background auto-start, CompanionDeviceManager,
+  slider reverse engineering, Pixel/Samsung adapters, or Photography Pro control.
 
 ## Source boundary
 
 Extraction source is FROZEN_REFERENCE\OM8_SONY_2026-10-24. The private project and frozen reference remain separate and unchanged.
+
+Phase 3A provenance is recorded in `LICENSE_MAP.md`,
+`DEPENDENCIES_AND_PROVENANCE.md`, and `THIRD_PARTY_NOTICES.md`. The only direct
+upstream adaptation in this phase is the MIT OpenGimbal mapping boundary; the
+OM8 wire path remains local and hardware-proven.
 

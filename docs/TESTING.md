@@ -31,6 +31,19 @@ service, key-decision, and controller-routing self-tests remain required.
 Profile JSON is data only. Tests must not add arbitrary intents, shell commands,
 coordinates, gestures, or unvalidated package control.
 
+## Phase 3A mapping tests
+
+`MappingEngineSelfTest` covers the default Record press/release mapping, unknown
+trigger rejection, deterministic JSON round-trip, malformed/future/unknown mapping
+rejection, user remapping, unsupported-action fail-closed behavior, and the
+distinction between discrete and continuous axis actions. `BridgeControllerSelfTest`
+also exercises the semantic action boundary. The existing Sony profile test confirms
+that the specialized adapter advertises `RECORD_TOGGLE` and continues to handle
+release as a no-op.
+
+The mapping lookup is pure/in-memory and must not add root, node, keyguard, or
+foreground queries to the OM8 Record hot path.
+
 ## Exact debug-device commands
 
 ~~~cmd

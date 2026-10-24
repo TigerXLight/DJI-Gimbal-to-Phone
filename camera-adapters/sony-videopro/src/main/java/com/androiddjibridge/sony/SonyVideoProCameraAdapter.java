@@ -2,6 +2,7 @@ package com.androiddjibridge.sony;
 
 import com.androiddjibridge.core.CameraAdapter;
 import com.androiddjibridge.core.CameraAdapterState;
+import com.androiddjibridge.core.CameraAction;
 import com.androiddjibridge.core.ControllerEvent;
 import com.androiddjibridge.core.CameraProfile;
 
@@ -38,18 +39,19 @@ public final class SonyVideoProCameraAdapter implements CameraAdapter {
     }
 
     @Override
-    public boolean handleControllerEvent(ControllerEvent event) {
-        if (event == null) {
+    public boolean supports(CameraAction action) {
+        return action == CameraAction.RECORD_TOGGLE;
+    }
+
+    @Override
+    public boolean execute(CameraAction action, ControllerEvent event) {
+        if (action != CameraAction.RECORD_TOGGLE || event == null) {
             state = CameraAdapterState.ACTION_REJECTED;
             return false;
         }
         if (VideoProKeyAccessibilityService.isLearningMode()) {
             state = CameraAdapterState.ACTION_REJECTED;
             return false;
-        }
-        if (event.getType() == ControllerEvent.Type.RECORD_UP) {
-            // Release is normalized for future adapters but never toggles Sony.
-            return true;
         }
         if (event.getType() != ControllerEvent.Type.RECORD_DOWN
                 || !VideoProKeyAccessibilityService.isConnected()) {
@@ -72,6 +74,15 @@ public final class SonyVideoProCameraAdapter implements CameraAdapter {
                 ? CameraAdapterState.ACTION_ACCEPTED
                 : CameraAdapterState.ACTION_REJECTED;
         return accepted;
+    }
+
+    @Override
+    public boolean handleControllerEvent(ControllerEvent event) {
+        if (event != null && event.getType() == ControllerEvent.Type.RECORD_UP) {
+            // Release is normalized for future adapters but never toggles Sony.
+            return true;
+        }
+        return event != null && execute(CameraAction.RECORD_TOGGLE, event);
     }
 
     @Override

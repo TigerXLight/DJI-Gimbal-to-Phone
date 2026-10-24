@@ -9,6 +9,9 @@
 - Main-looper GATT callback path, stale-GATT checks, retry/backoff, watchdog, CCCD readiness, Bluetooth recovery, and one HIGH-priority request per new GATT connection.
 - Sony Video Pro prepared-node/safety-snapshot Accessibility adapter extracted from the frozen reference.
 - Debug-only protected ADB start/stop and Sony diagnostic receivers.
+- Phase 2A camera-profile foundation: immutable `CameraProfile`, registry, versioned
+  JSON codec/validation, deterministic metadata matcher, and bridge readiness model.
+- Exactly one built-in profile: Sony Video Pro, selected by default by the app.
 
 ## Software status
 
@@ -30,6 +33,10 @@ Verified in the new repository:
 The Android release/version of the test handset was not recorded in the available source/frozen evidence. Build target SDK 35 must not be interpreted as the handset Android version.
 
 The debug broadcast com.androiddjibridge.OM8_LISTENER_START starts the OM8 driver/listener diagnostic path only. OM8 LISTENER READY means Gimbal READY, not necessarily Bridge READY. The normal UI Start Bridge path is the complete startup path with the selected Sony adapter available.
+
+Phase 2A does not add the Learn Camera wizard or a generic replacement for the Sony
+adapter. The profile contains camera metadata; the adapter remains responsible for
+Sony-specific Accessibility execution and safety.
 
 ## Claims and limitations
 

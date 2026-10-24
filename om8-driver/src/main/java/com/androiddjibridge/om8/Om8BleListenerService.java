@@ -37,6 +37,7 @@ import com.androiddjibridge.core.ControllerEvent;
 import com.androiddjibridge.core.ControllerEventSink;
 import com.androiddjibridge.core.GimbalDriver;
 import com.androiddjibridge.core.BridgeRuntime;
+import com.androiddjibridge.core.BridgeController;
 
 import java.util.Locale;
 import java.util.EnumSet;
@@ -881,7 +882,21 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             return;
         }
         listenerState = state;
+        publishGimbalState(state);
         log("OM8_STATE " + state.name());
+    }
+
+    private void publishGimbalState(ListenerState state) {
+        BridgeController controller = BridgeRuntime.controller();
+        if (controller == null || state == null) {
+            return;
+        }
+        try {
+            controller.setGimbalConnectionState(
+                    GimbalDriver.ConnectionState.valueOf(state.name()));
+        } catch (IllegalArgumentException ignored) {
+            // Listener and core state names are intentionally kept aligned.
+        }
     }
 
     private long elapsedSince(long startNanos, long endNanos) {

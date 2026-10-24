@@ -11,6 +11,26 @@ gradlew.bat assembleDebug --no-daemon --console=plain
 
 The parser/edge and core-routing self-tests are kept as source-level regression classes. The Android Gradle test tasks must also remain green.
 
+## Phase 2A profile tests
+
+The following source self-tests cover the profile foundation in addition to the
+existing Phase 1 tests:
+
+~~~cmd
+java -cp "bridge-core\build\classes\java\main;bridge-core\build\classes\java\test" com.androiddjibridge.core.CameraProfileJsonCodecSelfTest
+java -cp "bridge-core\build\classes\java\main;bridge-core\build\classes\java\test" com.androiddjibridge.core.BridgeControllerSelfTest
+java -cp "camera-adapters\sony-videopro\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes;camera-adapters\sony-videopro\build\intermediates\javac\debugUnitTest\compileDebugUnitTestJavaWithJavac\classes" com.androiddjibridge.sony.SonyVideoProProfileSelfTest
+~~~
+
+They verify Sony metadata and registry lookup, valid JSON round-trip and deterministic
+serialization, malformed/unsupported profile rejection, safe action/capability
+handling, target matching, and the rule that bridge readiness requires a ready gimbal,
+selected profile, and available matching adapter. The existing OM8 parser, foreground
+service, key-decision, and controller-routing self-tests remain required.
+
+Profile JSON is data only. Tests must not add arbitrary intents, shell commands,
+coordinates, gestures, or unvalidated package control.
+
 ## Exact debug-device commands
 
 ~~~cmd

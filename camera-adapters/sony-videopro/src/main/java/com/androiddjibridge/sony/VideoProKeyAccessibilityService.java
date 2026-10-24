@@ -19,6 +19,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
+import com.androiddjibridge.core.CameraProfile;
 import com.androiddjibridge.core.ControllerEvent;
 
 import java.util.Arrays;
@@ -33,11 +34,14 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
     public static final String ACTION_TEST_SONY_REC_CLICK =
             "com.androiddjibridge.TEST_SONY_REC_CLICK";
 
-    private static final String VIDEO_PRO_PACKAGE = "jp.co.sony.mc.videopro";
-    private static final String RECORDING_NODE_ID = VIDEO_PRO_PACKAGE + ":id/recording";
-    private static final String REC_STATUS_NODE_ID = VIDEO_PRO_PACKAGE + ":id/rec_status";
-    private static final String DURATION_NODE_ID = VIDEO_PRO_PACKAGE + ":id/duration";
-    private static final String REC_NODE_CLASS = "android.widget.ImageButton";
+    private static final CameraProfile CAMERA_PROFILE = SonyVideoProProfile.builtIn();
+    private static final String VIDEO_PRO_PACKAGE = CAMERA_PROFILE.getPackageName();
+    private static final String RECORDING_NODE_ID =
+            CAMERA_PROFILE.getRecordButtonResourceId();
+    private static final String REC_STATUS_NODE_ID = CAMERA_PROFILE.getStateResourceId();
+    private static final String DURATION_NODE_ID = CAMERA_PROFILE.getDurationResourceId();
+    private static final String REC_NODE_CLASS =
+            CAMERA_PROFILE.getRecordButtonClassName();
     private static final long POST_CLICK_CHECK_ONE_MS = 250L;
     private static final long POST_CLICK_CHECK_TWO_MS = 750L;
     private static final long PREPARE_DEBOUNCE_MS = 50L;
@@ -1271,8 +1275,8 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
         }
         boolean packageMatches = VIDEO_PRO_PACKAGE.contentEquals(node.getPackageName());
         CharSequence description = node.getContentDescription();
-        boolean descriptionMatches = "Start video recording".contentEquals(description)
-                || "Stop video recording".contentEquals(description);
+        boolean descriptionMatches = CAMERA_PROFILE.isAllowedContentDescription(
+                description == null ? null : description.toString());
         return new RecNodePredicates(
                 packageMatches,
                 RECORDING_NODE_ID.equals(node.getViewIdResourceName()),

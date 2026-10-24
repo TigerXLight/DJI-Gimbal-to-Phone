@@ -3,10 +3,12 @@ package com.androiddjibridge.sony;
 import com.androiddjibridge.core.CameraAdapter;
 import com.androiddjibridge.core.CameraAdapterState;
 import com.androiddjibridge.core.ControllerEvent;
+import com.androiddjibridge.core.CameraProfile;
 
 /** Sony Video Pro output adapter; all Accessibility safety remains in the service. */
 public final class SonyVideoProCameraAdapter implements CameraAdapter {
-    public static final String PACKAGE_NAME = "jp.co.sony.mc.videopro";
+    public static final CameraProfile PROFILE = SonyVideoProProfile.builtIn();
+    public static final String PACKAGE_NAME = PROFILE.getPackageName();
 
     private volatile CameraAdapterState state = CameraAdapterState.UNAVAILABLE;
 
@@ -18,6 +20,11 @@ public final class SonyVideoProCameraAdapter implements CameraAdapter {
     @Override
     public String displayName() {
         return "Sony Video Pro";
+    }
+
+    @Override
+    public CameraProfile profile() {
+        return PROFILE;
     }
 
     @Override

@@ -2,6 +2,9 @@
 
 Only evidence-backed entries are listed as tested. Phase 1 hardware regression has passed for the entries marked tested.
 
+Phase 2A adds profile architecture only; it does not add a new camera-app support
+claim. Sony Video Pro remains the only hardware-tested camera application.
+
 | Category | Item | Driver/adapter | Protocol or behavior verified | Hardware status |
 | --- | --- | --- | --- | --- |
 | Gimbal | DJI Osmo Mobile 8 / OM8 | om8-driver | Direct BLE, FFF0/FFF4 DUML Record status, CCCD setup, recovery | Tested — Phase 1 PASS |
@@ -17,4 +20,8 @@ Not supported/verified claims:
 - Insta360 Mic Pro or any audio recorder.
 
 The normal UI Start Bridge control starts the complete bridge. The debug OM8_LISTENER_START broadcast is listener-only; OM8 LISTENER READY is Gimbal READY and does not alone prove camera-adapter availability.
+
+The built-in Sony profile records the already verified package/resource metadata. The
+profile's `HARDWARE_TESTED` status applies to the Sony/Xperia/OM8 path documented here,
+not to universal Android or camera-app compatibility.
 

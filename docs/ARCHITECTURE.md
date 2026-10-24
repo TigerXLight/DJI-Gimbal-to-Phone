@@ -10,6 +10,8 @@ om8-driver
 bridge-core
     ControllerEvent
     BridgeController
+    CameraProfileRegistry / selected CameraProfile
+    BridgeReadiness
     selected CameraAdapter
              |
              v
@@ -21,6 +23,35 @@ camera-adapters/sony-videopro
 The Android application module supplies the UI, application initialization, manifest, and debug-only receivers. BridgeApplication installs the selected adapter in the process-local BridgeRuntime registry. The OM8 service emits normalized events through that registry and never imports Sony classes.
 
 The normal UI Start Bridge path is the complete bridge startup path. The explicit debug OM8_LISTENER_START broadcast is a driver/listener diagnostic path; it can establish Gimbal READY without proving that a selected camera adapter is available. A driver-only start may therefore report BRIDGE_EVENT_REJECTED reason=no-selected-camera-adapter-or-camera-service.
+
+## Camera profiles and readiness
+
+`CameraProfile` is immutable, versioned data describing a camera application. It can
+contain the expected Android package, recording resource/class metadata, accepted
+content descriptions, optional state/duration resources, supported capabilities,
+provenance, and validation status. `CameraProfileRegistry` indexes explicitly
+registered profiles by stable ID and package. Phase 2A registers exactly one built-in
+profile: Sony Video Pro (`jp.co.sony.mc.videopro`).
+
+The profile is not an executable configuration. Versioned JSON parsing rejects missing
+or malformed required fields, unsupported schema versions, unknown capabilities/actions,
+and arbitrary commands. The deterministic `AccessibilityTargetMatcher` is a metadata
+matching aid; it is not an exported click interface.
+
+The selected profile and adapter remain separate. The Sony adapter retains the proven
+prepared-node lifecycle, safety snapshot, foreground/keyguard/window checks,
+`ACTION_CLICK`, authoritative `rec_status` verification, and delayed re-arm. The
+profile centralizes the stable Sony identifiers without replacing that execution path.
+
+Complete bridge readiness is distinct from driver readiness:
+
+~~~text
+GIMBAL_READY + CAMERA_PROFILE_SELECTED + CAMERA_SERVICE_AVAILABLE = BRIDGE_READY
+~~~
+
+`OM8 LISTENER READY` therefore means the OM8 driver is ready. The normal UI Start
+Bridge path selects Sony and starts the complete bridge; the debug listener broadcast
+remains driver/listener-only.
 
 ## Module boundaries
 

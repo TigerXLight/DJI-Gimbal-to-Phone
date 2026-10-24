@@ -47,7 +47,9 @@ public final class MainActivity extends Activity {
         root.addView(explanation, matchWrap());
 
         status = new TextView(this);
-        status.setText("Bridge status: STOPPED\nDetected gimbal: waiting\nDriver: DJI OM8\nCamera adapter: Sony Video Pro");
+        status.setText("Bridge status: STOPPED\nGimbal driver: STOPPED\n"
+                + "Camera profile: Sony Video Pro (selected)\n"
+                + "Camera adapter: waiting for AccessibilityService");
         status.setPadding(0, 24, 0, 24);
         root.addView(status, matchWrap());
 
@@ -90,7 +92,10 @@ public final class MainActivity extends Activity {
             } else {
                 startService(intent);
             }
-            status.setText("Bridge status: STARTING / SCANNING\nDetected gimbal: scanning for OM8-\nDriver: DJI OM8\nCamera adapter: Sony Video Pro");
+            status.setText("Bridge status: STARTING / SCANNING\n"
+                    + "Gimbal driver: scanning for OM8-\n"
+                    + "Camera profile: Sony Video Pro (selected)\n"
+                    + "Complete bridge: waiting for gimbal + camera service");
         } catch (SecurityException error) {
             status.setText("Bridge start rejected: " + error.getMessage());
         }
@@ -101,7 +106,9 @@ public final class MainActivity extends Activity {
                 .setAction(Om8BleListenerService.ACTION_STOP_LISTENER);
         try {
             startService(intent);
-            status.setText("Bridge status: STOPPED");
+            status.setText("Bridge status: STOPPED\nGimbal driver: STOPPED\n"
+                    + "Camera profile: Sony Video Pro (selected)\n"
+                    + "Camera adapter: unavailable");
         } catch (SecurityException error) {
             status.setText("Bridge stop rejected: " + error.getMessage());
         }

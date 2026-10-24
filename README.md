@@ -118,3 +118,25 @@ The Sony adapter requires the user to enable the bridge AccessibilityService. It
 
 See docs/ROADMAP.md and NEXT_STEPS.md.
 
+## Phase 2A camera-profile foundation
+
+Phase 2A adds a small, data-only camera-profile foundation. `CameraProfile` describes
+validated camera-application metadata such as the package, recording target, state
+nodes, supported capability, provenance, and schema version. `CameraProfileRegistry`
+resolves the explicitly selected profile; its only built-in entry is Sony Video Pro.
+
+Profiles are versioned JSON data. They are validated and deterministically serialized;
+they cannot contain executable actions, intents, shell commands, or arbitrary
+Accessibility operations. A profile is not permission to click an arbitrary app.
+
+The trusted `SonyVideoProCameraAdapter` and
+`VideoProKeyAccessibilityService` still own Sony-specific execution and safety logic,
+including foreground/window checks, prepared-node and safety-snapshot fast paths,
+post-click `rec_status` verification, and delayed re-arm. The profile supplies the
+identifiers and capability metadata used by that adapter; it does not replace the
+adapter or the proven Phase 1 path.
+
+The architecture is designed to support multiple Android camera applications through
+validated profiles/adapters. Sony Video Pro is currently the only hardware-tested
+camera application. The interactive Learn Camera wizard is not implemented.
+

@@ -43,3 +43,14 @@ code. No HJ360 wire protocol, screenshot/coordinate fallback, or OpenGimbal
 transport UUID was copied. See `DEPENDENCIES_AND_PROVENANCE.md` and the research
 `ADAPTATION_LEDGER.json` for the exact upstream commit and adaptation record.
 
+## Current integration additions
+
+The production tree adds local `GimbalProfile` transport metadata, profile-scoped
+mapping persistence, a pure gesture-policy boundary, and an explicit raw OM8
+diagnostic toggle. These are local additions and do not alter the frozen OM8/Sony
+implementation path. `PixelCameraProfileEvidence` records only the exact
+selectors reported by `video-boost-ao` (MIT, commit
+`0205b761dca8b033b755ac18421f25ad1ef2d426`); no source service or privileged
+ADB/Shizuku behavior was incorporated. Samsung is represented only by a local
+fail-closed research status.
+

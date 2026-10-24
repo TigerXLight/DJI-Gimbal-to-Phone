@@ -56,3 +56,11 @@ The adapted ideas are the connect-policy decision boundary, remembered-device
 reconnect lifecycle, and bounded retry policy. The production implementation
 is local Java code adapted to the proven DJI OM8 FFF4 notification driver. No
 HJ360 wire implementation or camera-control fallback was copied.
+
+## Pixel selector evidence
+
+The local `PixelCameraProfileEvidence` constants are derived from the MIT-licensed
+`AgusRomeroL/video-boost-ao` repository, commit
+`0205b761dca8b033b755ac18421f25ad1ef2d426`, especially `Selectors.kt`. The
+production class is a small attributed evidence record, not a copied service or
+APK-resource generator. No Pixel camera control is enabled by this release.

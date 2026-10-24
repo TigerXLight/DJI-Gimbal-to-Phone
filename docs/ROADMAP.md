@@ -86,3 +86,13 @@ Bluetooth on/off and reboot recovery, and possibly CompanionDeviceManager evalua
 Bluetooth pairing alone does not provide camera control; bridge GATT connection and
 notification subscription remain necessary.
 
+## Broad research integration status
+
+The current foundation incorporates the useful permissive-license architecture
+from the upstream audit without importing incompatible protocol or unsafe camera
+fallbacks. Mappings are profile-scoped and editable; raw OM8 diagnostics are
+explicitly toggled. Pixel selectors are retained as hardware-unverified evidence,
+Samsung stock control remains fail-closed, and Photography Pro's ordinary-app
+camera-button broadcast is tested negative. Future work is hardware-backed
+adapter-by-adapter validation, not a universal compatibility claim.
+

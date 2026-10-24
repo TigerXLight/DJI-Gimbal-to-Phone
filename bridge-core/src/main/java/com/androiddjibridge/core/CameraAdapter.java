@@ -24,9 +24,25 @@ public interface CameraAdapter {
      * unsupported actions fail closed.
      */
     default boolean supports(CameraAction action) {
-        return action == CameraAction.RECORD_TOGGLE
-                && profile() != null
-                && profile().supports(CameraCapability.RECORD_TOGGLE);
+        if (profile() == null || action == null) {
+            return false;
+        }
+        switch (action) {
+            case CAPTURE_PHOTO:
+                return profile().supports(CameraCapability.CAPTURE_PHOTO);
+            case RECORD_TOGGLE:
+                return profile().supports(CameraCapability.RECORD_TOGGLE);
+            case FOCUS:
+                return profile().supports(CameraCapability.FOCUS);
+            case ZOOM_IN:
+                return profile().supports(CameraCapability.ZOOM_IN);
+            case ZOOM_OUT:
+                return profile().supports(CameraCapability.ZOOM_OUT);
+            case SWITCH_LENS:
+                return profile().supports(CameraCapability.SWITCH_LENS);
+            default:
+                return false;
+        }
     }
 
     /**

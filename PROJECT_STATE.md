@@ -175,3 +175,15 @@ remain available.
 Phase 3B hardware status is **PENDING**. It requires the short association,
 background wake-up, power-cycle, Gimbal READY, Sony START/STOP regression.
 
+The post-Phase-3B integration foundation keeps mappings profile-scoped and adds
+the explicit Edit Control Mappings and OM8 Raw Diagnostics controls. The
+normalized event model reserves press/hold/multi-press and continuous-axis forms
+without decoding any unmeasured OM8 packet. A data-only GimbalProfile registry
+describes OM8 transport metadata; it does not add FFF5 writes.
+
+Pixel selector evidence is recorded as IMPLEMENTED_HARDWARE_UNVERIFIED and is not
+yet a safe record-control adapter. Samsung stock camera remains
+UNSUPPORTED_NO_SAFE_PATH absent a stable ordinary-app contract. Photography Pro's
+ordinary-app ACTION_CAMERA_BUTTON probe is TESTED_NEGATIVE. See
+docs/UPSTREAM_INTEGRATION.md.
+

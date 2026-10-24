@@ -3,5 +3,10 @@ package com.androiddjibridge.core;
 public enum CameraProfileValidationStatus {
     UNTESTED,
     SOURCE_VERIFIED,
-    HARDWARE_TESTED
+    HARDWARE_TESTED,
+    IMPLEMENTED_HARDWARE_UNVERIFIED,
+    EXPECTED_COMPATIBLE,
+    LEARNED_USER_VALIDATED,
+    TESTED_NEGATIVE,
+    UNSUPPORTED_NO_SAFE_PATH
 }

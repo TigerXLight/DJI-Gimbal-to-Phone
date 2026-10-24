@@ -255,3 +255,15 @@ ordinary-app support. See
 [`PHOTOPRO_CAMERA_BUTTON_PROBE.md`](PHOTOPRO_CAMERA_BUTTON_PROBE.md) for the
 receiver/permission evidence and full interpretation.
 
+## Mapping and diagnostic controls
+
+The app's **Edit Control Mappings** screen stores only normalized trigger names
+and semantic camera actions, separately for each selected profile. Unsupported
+actions fail closed in the adapter. The default Record rising edge remains
+immediate `RECORD_TOGGLE`, and Record release remains a no-op.
+
+**OM8 Raw Diagnostics** is an explicit toggle for the current listener. It is off
+by default, so idle FFF4 heartbeats do not flood Logcat. When enabled it records
+raw frames for diagnosis; it does not change parsing, readiness, or camera action
+behavior. Disable it after capturing evidence.
+

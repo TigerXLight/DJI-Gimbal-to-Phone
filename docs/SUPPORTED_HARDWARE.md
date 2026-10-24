@@ -39,3 +39,14 @@ this matrix and does not constitute support for the target camera application. A
 separate real-device test is required before any learned profile can be described as
 hardware-tested.
 
+## Evidence tiers outside the tested matrix
+
+- Pixel Camera (`com.google.android.GoogleCamera`):
+  `IMPLEMENTED_HARDWARE_UNVERIFIED` selector evidence only; no safe record action
+  is enabled.
+- Samsung stock camera (`com.sec.android.app.camera` historical identifier):
+  `UNSUPPORTED_NO_SAFE_PATH` for an unlearned built-in backend; learned profiles
+  remain possible with explicit user validation.
+- Sony Photography Pro: ordinary-app `ACTION_CAMERA_BUTTON` broadcast is
+  `TESTED_NEGATIVE`; privileged shell key injection is not a production backend.
+

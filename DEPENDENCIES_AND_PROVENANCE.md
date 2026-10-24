@@ -26,6 +26,16 @@ OpenGimbal's HJ360 protocol, UUIDs, screenshot fallback, coordinate control, or
 gesture fallback. The local retry schedule is bounded and preserves the existing
 OM8 recovery state machine.
 
+## Current foundation additions
+
+| Local path | Origin | Provenance/licence | Validation |
+|---|---|---|---|
+| `bridge-core/GimbalProfile.java`, `GimbalProfileRegistry.java`, `om8-driver/Om8GimbalProfile.java` | Original data boundary; informed by protocol comparison | No upstream source copied; OM8 UUID values come from project hardware evidence | JVM registry test; no new GATT writes |
+| `bridge-core/ControllerGesturePolicy.java`, added event/trigger enum capacity | Original pure model, informed by OpenGimbal `TriggerDecoder` | OpenGimbal MIT is a design donor; no source copied | JVM policy test; OM8 parser unchanged |
+| `app/AndroidMappingStore.java`, `MainActivity.java` mapping/diagnostic controls | Local Android integration | No upstream source copied | Gradle compile; profile-scoped JSON remains strict |
+| `bridge-core/PixelCameraProfileEvidence.java` | Local evidence record from `video-boost-ao` `Selectors.kt` | MIT, commit `0205b761dca8b033b755ac18421f25ad1ef2d426`; no service copied | Hardware unverified; no record action enabled |
+| `bridge-core/SamsungCameraProfileEvidence.java` | Local safety classification | SamsungCamera-Research has no licence; no code copied | Fail-closed status only |
+
 ## Existing research-only references
 
 The research workspace retains the broader upstream catalogue and exact commits

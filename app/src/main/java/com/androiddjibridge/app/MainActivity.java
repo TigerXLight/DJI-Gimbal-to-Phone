@@ -21,10 +21,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.androiddjibridge.core.CameraProfile;
+import com.androiddjibridge.core.CameraAction;
 import com.androiddjibridge.core.CameraProfileCandidate;
 import com.androiddjibridge.core.CameraApplicationDiscovery;
 import com.androiddjibridge.core.CameraProfileLearningSession;
 import com.androiddjibridge.core.CameraProfileOrigin;
+import com.androiddjibridge.core.ControllerTrigger;
 import com.androiddjibridge.om8.Om8BleListenerService;
 import com.androiddjibridge.sony.VideoProKeyAccessibilityService;
 
@@ -40,6 +42,7 @@ public final class MainActivity extends Activity {
     private Spinner profileSpinner;
     private ArrayAdapter<String> profileChoices;
     private final List<CameraProfile> displayedProfiles = new ArrayList<>();
+    private boolean verboseDiagnostics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,6 +166,21 @@ public final class MainActivity extends Activity {
         learn.setText("Learn Camera");
         learn.setOnClickListener(view -> chooseLearningTarget());
         root.addView(learn, matchWrap());
+
+        Button mappings = new Button(this);
+        mappings.setText("Edit Control Mappings");
+        mappings.setOnClickListener(view -> showMappingEditor());
+        root.addView(mappings, matchWrap());
+
+        Button diagnostics = new Button(this);
+        diagnostics.setText("Enable OM8 Raw Diagnostics");
+        diagnostics.setOnClickListener(view -> {
+            verboseDiagnostics = !verboseDiagnostics;
+            diagnostics.setText(verboseDiagnostics
+                    ? "Disable OM8 Raw Diagnostics" : "Enable OM8 Raw Diagnostics");
+            setOm8Diagnostics(verboseDiagnostics);
+        });
+        root.addView(diagnostics, matchWrap());
 
         Button review = new Button(this);
         review.setText("Review / Confirm Candidate");
@@ -333,6 +351,64 @@ public final class MainActivity extends Activity {
         }
         updateLearningStatus("Profile test requested. It will click only one exact, fresh, "
                 + "safety-checked match in " + profile.getPackageName() + ".");
+    }
+
+    private void showMappingEditor() {
+        BridgeApplication application = (BridgeApplication) getApplication();
+        LinearLayout editor = new LinearLayout(this);
+        editor.setOrientation(LinearLayout.VERTICAL);
+        editor.setPadding(24, 8, 24, 8);
+        Spinner trigger = new Spinner(this);
+        ControllerTrigger[] triggers = ControllerTrigger.values();
+        String[] triggerNames = new String[triggers.length];
+        for (int i = 0; i < triggers.length; i++) {
+            triggerNames[i] = triggers[i].name();
+        }
+        trigger.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, triggerNames));
+        Spinner action = new Spinner(this);
+        CameraAction[] actions = CameraAction.values();
+        String[] actionNames = new String[actions.length];
+        for (int i = 0; i < actions.length; i++) {
+            actionNames[i] = actions[i].name();
+        }
+        action.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, actionNames));
+        editor.addView(trigger, matchWrap());
+        editor.addView(action, matchWrap());
+        new AlertDialog.Builder(this)
+                .setTitle("Controller mapping for selected profile")
+                .setMessage("The mapping selects a semantic camera action. It never contains\n"
+                        + "an intent, package, shell command, or Accessibility target.")
+                .setView(editor)
+                .setNegativeButton("Cancel", null)
+                .setNeutralButton("Reset", (dialog, which) -> {
+                    application.resetMappings();
+                    updateStatus("Mappings reset to safe defaults for the selected profile.");
+                })
+                .setPositiveButton("Save", (dialog, which) -> {
+                    ControllerTrigger selectedTrigger = triggers[trigger.getSelectedItemPosition()];
+                    CameraAction selectedAction = actions[action.getSelectedItemPosition()];
+                    if (application.setMapping(selectedTrigger, selectedAction)) {
+                        updateStatus("Mapping saved: " + selectedTrigger + " -> " + selectedAction);
+                    } else {
+                        updateStatus("Mapping was not saved.");
+                    }
+                })
+                .show();
+    }
+
+    private void setOm8Diagnostics(boolean enabled) {
+        Intent intent = new Intent(this, Om8BleListenerService.class)
+                .setAction(Om8BleListenerService.ACTION_SET_DIAGNOSTICS)
+                .putExtra(Om8BleListenerService.EXTRA_DIAGNOSTICS_ENABLED, enabled);
+        try {
+            startService(intent);
+            updateStatus("OM8 raw diagnostics " + (enabled ? "enabled" : "disabled")
+                    + " for the current listener.");
+        } catch (SecurityException error) {
+            updateStatus("Could not change OM8 diagnostics: " + error.getMessage());
+        }
     }
 
     private CameraProfile selectedProfile() {

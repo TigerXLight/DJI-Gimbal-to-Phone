@@ -20,5 +20,10 @@ path, safety snapshot, and Sony re-arm implementation remain local production
 code. No OpenGimbal HJ360 wire protocol, screenshot fallback, coordinate tap,
 gesture fallback, or camera-control implementation was imported.
 
+`GimbalProfile`, `GimbalProfileRegistry`, `ControllerGesturePolicy`, the
+profile-scoped Android mapping storage, raw-diagnostic toggle, and Pixel/Samsung
+evidence records are original local additions. They do not add third-party
+runtime dependencies or executable upstream code.
+
 For the complete candidate ledger, see
 `T:\References\to go\Media\tools\Android-DJI-OM-Bridge-Research\provenance\ADAPTATION_LEDGER.json`.

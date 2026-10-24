@@ -36,6 +36,7 @@ import android.util.Log;
 import com.androiddjibridge.core.ControllerEvent;
 import com.androiddjibridge.core.ControllerEventSink;
 import com.androiddjibridge.core.GimbalDriver;
+import com.androiddjibridge.core.GimbalProfile;
 import com.androiddjibridge.core.BridgeRuntime;
 import com.androiddjibridge.core.BridgeController;
 import com.androiddjibridge.core.ReconnectBackoff;
@@ -56,6 +57,10 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             "com.androiddjibridge.OM8_LISTENER_AUTO_START";
     public static final String ACTION_STOP_LISTENER =
             "com.androiddjibridge.OM8_LISTENER_STOP";
+    public static final String ACTION_SET_DIAGNOSTICS =
+            "com.androiddjibridge.OM8_SET_DIAGNOSTICS";
+    public static final String EXTRA_DIAGNOSTICS_ENABLED =
+            "com.androiddjibridge.extra.DIAGNOSTICS_ENABLED";
     public static final String EXTRA_START_REASON =
             "com.androiddjibridge.extra.START_REASON";
 
@@ -66,7 +71,6 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
     private static final long RETRY_MAX_DELAY_MS = 30_000L;
     private static final long NOTIFICATION_STALL_TIMEOUT_MS = 10_000L;
     private static final long NOTIFICATION_WATCHDOG_PERIOD_MS = 5_000L;
-    private static final boolean VERBOSE_DUML_LOGGING = false;
     private static final String OM8_NAME_PREFIX = "OM8-";
     private static final UUID OM8_SERVICE_UUID = UUID.fromString(
             "0000fff0-0000-1000-8000-00805f9b34fb");
@@ -90,6 +94,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
 
     private boolean foregroundStarted;
     private volatile boolean listenerReady;
+    private volatile boolean verboseDiagnostics;
 
     private enum ListenerState {
         DISCONNECTED,
@@ -414,6 +419,9 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             log("OM8 listener stop requested");
             stopListener("explicit-stop");
             stopSelf(startId);
+        } else if (intent != null && ACTION_SET_DIAGNOSTICS.equals(intent.getAction())) {
+            verboseDiagnostics = intent.getBooleanExtra(EXTRA_DIAGNOSTICS_ENABLED, false);
+            log("OM8 diagnostics enabled=" + verboseDiagnostics);
         }
         return START_NOT_STICKY;
     }
@@ -454,6 +462,11 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
     @Override
     public String displayName() {
         return "DJI Osmo Mobile 8 / OM8";
+    }
+
+    @Override
+    public GimbalProfile profile() {
+        return Om8GimbalProfile.proven();
     }
 
     @Override
@@ -934,7 +947,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
         Om8DumlStatusParser.Result parsed = Om8DumlStatusParser.parse(value);
         long parseEnd = SystemClock.elapsedRealtimeNanos();
         if (!parsed.isValid()) {
-            if (VERBOSE_DUML_LOGGING) {
+            if (verboseDiagnostics) {
                 logger.packet("OM8_FFF4_RX_INVALID", value);
                 log("OM8 FFF4 notification ignored reason=" + parsed.getReason()
                         + " length=" + value.length);
@@ -963,9 +976,12 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
                     : BridgeRuntime.dispatch(event);
             long dispatchEnd = SystemClock.elapsedRealtimeNanos();
             int recBit = parsed.getRecordByte() & Om8DumlStatusParser.RECORD_BIT;
-            byte[] frame = parsed.getFrame();
-            String frameHex = BridgeDiagnosticLogger.toHex(frame);
-            logger.packet("OM8_FFF4_RX", frame);
+            if (verboseDiagnostics) {
+                byte[] frame = parsed.getFrame();
+                logger.packet("OM8_FFF4_RX", frame);
+            }
+            String frameHex = verboseDiagnostics
+                    ? BridgeDiagnosticLogger.toHex(parsed.getFrame()) : "";
             log("OM8_REC_PRESS"
                     + " controllerEventSequence=" + sequence
                     + " recBit=0x" + String.format(Locale.US, "%02X", recBit)
@@ -974,15 +990,17 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
                     + " callbackToDetectionNanos=" + (edgeDetectEnd - callbackEnter)
                     + " bridgeDispatchNanos=" + (dispatchEnd - dispatchStart)
                     + " accepted=" + accepted
-                    + " frame=" + frameHex);
+                    + (verboseDiagnostics ? " frame=" + frameHex : ""));
             if (!accepted) {
                 log("BRIDGE_EVENT_REJECTED reason=no-selected-camera-adapter-or-camera-service");
             }
         } else if (edge == Om8RecButtonEdgeDetector.Event.RELEASE) {
             byte[] frame = parsed.getFrame();
-            logger.packet("OM8_FFF4_RX", frame);
+            if (verboseDiagnostics) {
+                logger.packet("OM8_FFF4_RX", frame);
+            }
             log("OM8_REC_RELEASE controllerEventSequence=" + lastOm8PressSequence
-                    + " frame=" + BridgeDiagnosticLogger.toHex(frame));
+                    + (verboseDiagnostics ? " frame=" + BridgeDiagnosticLogger.toHex(frame) : ""));
             ControllerEvent event = new ControllerEvent(
                     ControllerEvent.Type.RECORD_UP,
                     id(),
@@ -995,7 +1013,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             if (sink != null) {
                 sink.onControllerEvent(event);
             }
-        } else if (VERBOSE_DUML_LOGGING) {
+        } else if (verboseDiagnostics) {
             logger.packet("OM8_FFF4_RX", parsed.getFrame());
             log("OM8 status heartbeat cmdSet=0x04 cmdId=0x57");
         }

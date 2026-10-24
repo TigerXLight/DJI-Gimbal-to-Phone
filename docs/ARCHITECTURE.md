@@ -181,3 +181,27 @@ recovery/diagnostic path. Companion presence is best-effort on Android versions
 where the legacy address-based observation API is available; absence of that
 API does not weaken the direct GATT path.
 
+## Broad integration boundary
+
+The current implementation keeps independent registries and boundaries:
+
+```text
+GimbalProfileRegistry -> GimbalDriver -> ControllerEvent
+                                      -> MappingEngine -> CameraAction
+                                      -> CameraProfile/CameraAdapter
+```
+
+`GimbalProfile` contains only transport metadata. `CameraProfile` contains only
+validated camera-application metadata. Neither contains executable commands.
+Mappings are app-private, versioned, profile-scoped data. An adapter advertises
+capabilities and fails closed when an action is unsupported.
+
+The control model reserves single/double/long/hold and continuous-axis events,
+but no unmeasured OM8 packet is interpreted. The proven Record edge remains
+immediate; no double-press timeout is inserted into the default mapping.
+
+The only hardware-tested camera remains Sony Video Pro. Pixel selectors are
+source-evidenced but hardware-unverified, Samsung has no safe universal stock
+camera contract in the evidence set, and Photography Pro's ordinary-app camera
+button broadcast is tested negative. See `docs/UPSTREAM_INTEGRATION.md`.
+

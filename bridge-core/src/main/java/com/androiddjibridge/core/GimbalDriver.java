@@ -27,6 +27,11 @@ public interface GimbalDriver {
 
     String displayName();
 
+    /** Transport profile metadata, when this driver has one. */
+    default GimbalProfile profile() {
+        return null;
+    }
+
     void start();
 
     void stop();

@@ -119,6 +119,26 @@ The Sony adapter requires the user to enable the bridge AccessibilityService. It
 
 See docs/ROADMAP.md and NEXT_STEPS.md.
 
+## Current universal-bridge foundation
+
+The bridge now keeps mappings per selected camera profile and exposes a small
+**Edit Control Mappings** screen. Mappings contain only normalized triggers and
+semantic `CameraAction` values; they cannot contain packages, intents, shell
+commands, coordinates, or Accessibility targets. The default OM8 Record rising
+edge remains an immediate `RECORD_TOGGLE`, while Record release is a no-op.
+
+The UI also provides an explicit **OM8 Raw Diagnostics** toggle. Raw DUML packets
+are not logged continuously by default and enabling diagnostics does not change
+the proven parser or Sony action path.
+
+`GimbalProfile` is transport metadata, not a permission to write commands. The
+OM8 profile describes the proven FFF0/FFF4 transport and records FFF5 only as a
+future protocol surface; this build performs no FFF5 writes.
+
+Upstream integration decisions and licence boundaries are documented in
+`docs/UPSTREAM_INTEGRATION.md`, `LICENSE_MAP.md`, `DEPENDENCIES_AND_PROVENANCE.md`,
+and `THIRD_PARTY_NOTICES.md`.
+
 ## Phase 2A camera-profile foundation
 
 Phase 2A adds a small, data-only camera-profile foundation. `CameraProfile` describes

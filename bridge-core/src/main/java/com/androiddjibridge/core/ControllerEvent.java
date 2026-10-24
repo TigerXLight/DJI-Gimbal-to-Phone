@@ -5,6 +5,11 @@ public final class ControllerEvent {
     public enum Type {
         RECORD_DOWN,
         RECORD_UP,
+        RECORD_SINGLE_PRESS,
+        RECORD_DOUBLE_PRESS,
+        RECORD_LONG_PRESS,
+        RECORD_HOLD_START,
+        RECORD_HOLD_END,
         ZOOM_IN,
         ZOOM_OUT,
         FOCUS,
@@ -12,6 +17,7 @@ public final class ControllerEvent {
         SLIDER_DOWN,
         SLIDER_PRESS,
         SLIDER_AXIS,
+        SLIDER_HOLD,
         JOYSTICK,
         MODE
     }

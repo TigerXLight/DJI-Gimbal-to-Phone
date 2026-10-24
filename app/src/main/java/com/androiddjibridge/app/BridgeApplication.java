@@ -37,7 +37,7 @@ public final class BridgeApplication extends Application {
         Set<String> builtInPackages = Collections.singleton(sonyProfile.getPackageName());
         learnedProfileStore = new LearnedProfileStore(this, builtInIds, builtInPackages);
         mappingStore = new AndroidMappingStore(this);
-        mappingEngine = new MappingEngine(mappingStore.load());
+        mappingEngine = new MappingEngine(mappingStore.load(sonyProfile.getStableId()));
         CameraProfileRegistry registry = buildRegistry();
         controller = new BridgeController(
                 registry, sonyProfile, mappingEngine, new SonyVideoProCameraAdapter());
@@ -61,6 +61,7 @@ public final class BridgeApplication extends Application {
         if (profile == null || !controller.selectProfile(stableId)) {
             return false;
         }
+        mappingEngine.setStore(mappingStore.load(profile.getStableId()));
         if (sonyProfile.getStableId().equals(profile.getStableId())
                 && profile.getOrigin() == CameraProfileOrigin.BUILTIN) {
             controller.setSelectedAdapter(new SonyVideoProCameraAdapter());
@@ -84,7 +85,7 @@ public final class BridgeApplication extends Application {
 
     public boolean setMapping(ControllerTrigger trigger, CameraAction action) {
         MappingStore replacement = mappingEngine.getStore().withMapping(trigger, action);
-        if (!mappingStore.save(replacement)) {
+        if (!mappingStore.save(selectedProfileId(), replacement)) {
             return false;
         }
         mappingEngine.setStore(replacement);
@@ -93,11 +94,16 @@ public final class BridgeApplication extends Application {
 
     public boolean resetMappings() {
         MappingStore replacement = mappingEngine.getStore().reset();
-        if (!mappingStore.save(replacement)) {
+        if (!mappingStore.reset(selectedProfileId())) {
             return false;
         }
         mappingEngine.setStore(replacement);
         return true;
+    }
+
+    private String selectedProfileId() {
+        CameraProfile profile = controller.getSelectedProfile();
+        return profile == null ? "default" : profile.getStableId();
     }
 
     private CameraProfileRegistry buildRegistry() {

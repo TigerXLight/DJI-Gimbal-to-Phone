@@ -43,3 +43,11 @@
 Do not start Insta360 work, broader camera compatibility claims, generic arbitrary
 tapping, gimbal movement, or a public release from this baseline.
 
+16. Hardware-validate the Phase 3B association/presence lifecycle separately; do
+    not treat OM8 LISTENER READY as complete camera readiness.
+17. Hardware-test any future Pixel/Samsung/Photography Pro backend independently.
+    Keep Pixel selector evidence hardware-unverified and the ordinary-app
+    Photography Pro camera-button path tested negative.
+18. Add only measured OM8 controller inputs to the normalized event model. Keep
+    the current Record edge immediate and do not add speculative transport writes.
+

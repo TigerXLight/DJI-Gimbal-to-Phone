@@ -31,3 +31,15 @@ Accessibility query was added by Phase 3A.
 
 A later profile engine may describe a package, record view ID, content-description patterns, optional state node, and supported actions. `CameraAction` already contains semantic capacity for photo, focus, zoom, lens, and continuous-axis operations, but no additional camera adapter is implemented by Phase 3A. It must not make coordinate tapping the trusted default. Profile learning was intentionally outside Phase 1; Phase 2B now provides the scoped, confirmation-based Learn Camera discovery workflow described in `LEARN_CAMERA.md`.
 
+## Current cross-brand evidence boundary
+
+The normalized action vocabulary is intentionally broader than the currently
+implemented adapters. Pixel Camera evidence from `video-boost-ao` records the
+package `com.google.android.GoogleCamera` and known settings/mode selectors, but
+does not identify a safe record node; it is therefore not enabled as an action
+adapter. Samsung stock camera has no stable ordinary-app contract in the examined
+evidence and remains fail-closed unless a user-learned exact target is explicitly
+validated. Sony Photography Pro's ordinary-app camera-button broadcast probe is
+tested negative. These statuses are not claims that the applications themselves
+are impossible to control through another legitimate backend.
+

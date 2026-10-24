@@ -9,5 +9,9 @@
             android:name="com.androiddjibridge.app.SonyRecDiagnosticReceiver"
             android:exported="true"
             android:permission="android.permission.DUMP" />
+        <receiver
+            android:name="com.androiddjibridge.app.PhotographyProCameraButtonProbeReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
     </application>
 </manifest>

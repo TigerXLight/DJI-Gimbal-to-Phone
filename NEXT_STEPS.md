@@ -18,7 +18,12 @@
    (`jp.co.sony.mc.videopro`) are listed. Then perform the first deliberate
    Photography Pro candidate capture; do not call it supported until that hardware
    test passes.
-10. Keep automatic bridge startup/reconnection, remembered gimbal/profile, Bluetooth
+10. Run the temporary Photography Pro CAMERA_BUTTON capability probe while
+    Photography Pro is foreground and unlocked. Record whether the ordinary
+    package-scoped broadcast produces exactly one photograph; `sendBroadcast()`
+    returning normally is not sufficient evidence. Do not map OM8 input or create
+    a Photography Pro profile from this experiment.
+11. Keep automatic bridge startup/reconnection, remembered gimbal/profile, Bluetooth
     on/off recovery, reboot behavior, and optional CompanionDeviceManager evaluation
     as a later phase.
 

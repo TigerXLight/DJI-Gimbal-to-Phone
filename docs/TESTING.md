@@ -159,3 +159,32 @@ Use the UI Start Bridge path for this complete-bridge procedure. The debug broad
 
 Callback-entry to camera-action timing is application-side only. It excludes physical button travel/debounce, BLE transport before Android callback delivery, camera application/media-pipeline startup, and the first encoded frame/audio sample.
 
+## Temporary Photography Pro CAMERA_BUTTON capability probe
+
+The debug build contains a narrow, DUMP-protected diagnostic receiver for the
+installed Sony Photography Pro package (`com.sonymobile.photopro`):
+
+```cmd
+adb shell am broadcast -a com.androiddjibridge.TEST_PHOTOPRO_CAMERA_BUTTON_PROBE -n com.androiddjibridge/com.androiddjibridge.app.PhotographyProCameraButtonProbeReceiver
+```
+
+Run it only while Photography Pro is the actual foreground application, the
+screen is interactive, and the device is unlocked. The AccessibilityService
+checks those conditions and fails closed otherwise. On success it sends one
+package-scoped `android.intent.action.CAMERA_BUTTON` DOWN/UP pair with
+`Intent.EXTRA_KEY_EVENT` and `KEYCODE_CAMERA` through normal public
+`Context.sendBroadcast()`. It never uses `adb`, shell execution, input
+injection, hidden APIs, coordinates, gestures, or retries. This is not mapped
+to OM8 input and does not create a permanent Photography Pro profile.
+
+Inspect the result with:
+
+```cmd
+adb logcat -v time -s VideoProKeyAccessibilityService:I *:S
+```
+
+Normal return from `sendBroadcast()` is not proof of camera behavior. The
+acceptance result is a single new photograph captured by Photography Pro. See
+[`PHOTOPRO_CAMERA_BUTTON_PROBE.md`](PHOTOPRO_CAMERA_BUTTON_PROBE.md) for the
+receiver/permission evidence and full interpretation.
+

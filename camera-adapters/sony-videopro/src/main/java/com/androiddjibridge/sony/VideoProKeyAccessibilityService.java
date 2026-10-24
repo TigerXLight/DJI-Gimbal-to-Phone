@@ -43,9 +43,13 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
     private static final String TAG = "VideoProKeyAccessibilityService";
     public static final String ACTION_TEST_SONY_REC_CLICK =
             "com.androiddjibridge.TEST_SONY_REC_CLICK";
+    public static final String ACTION_TEST_PHOTOPRO_CAMERA_BUTTON_PROBE =
+            "com.androiddjibridge.TEST_PHOTOPRO_CAMERA_BUTTON_PROBE";
 
     private static final CameraProfile CAMERA_PROFILE = SonyVideoProProfile.builtIn();
     private static final String VIDEO_PRO_PACKAGE = CAMERA_PROFILE.getPackageName();
+    private static final String PHOTOPRO_PACKAGE =
+            PhotographyProCameraButtonProbeDecision.PACKAGE_NAME;
     private static final String RECORDING_NODE_ID =
             CAMERA_PROFILE.getRecordButtonResourceId();
     private static final String REC_STATUS_NODE_ID = CAMERA_PROFILE.getStateResourceId();
@@ -195,6 +199,21 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
             return;
         }
         instance.diagnosticHandler.post(() -> instance.performSonyRecAction(null));
+    }
+
+    /**
+     * Queues the temporary, package-scoped Photography Pro CAMERA_BUTTON probe.
+     * The live service performs the foreground and device-safety checks on its
+     * own main looper before constructing either broadcast.
+     */
+    public static boolean requestPhotographyProCameraButtonProbe() {
+        VideoProKeyAccessibilityService instance = activeInstance;
+        if (instance == null) {
+            Log.i(TAG, "PHOTOPRO_CAMERA_BUTTON_PROBE rejected reason=accessibility-service-not-connected");
+            return false;
+        }
+        instance.diagnosticHandler.post(instance::performPhotographyProCameraButtonProbe);
+        return true;
     }
 
     public static boolean isConnected() {
@@ -647,6 +666,82 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
             }
         }
         return actions;
+    }
+
+    /** Runs on the AccessibilityService main looper; never called by OM8 input. */
+    private void performPhotographyProCameraButtonProbe() {
+        String activePackage = effectiveForegroundPackage == null
+                ? ""
+                : effectiveForegroundPackage;
+        boolean interactive = isDeviceInteractive();
+        boolean keyguardLocked = isKeyguardLocked();
+        log("PHOTOPRO_CAMERA_BUTTON_PROBE begin"
+                + " effectiveForegroundPackage=" + activePackage
+                + " configuredPackage=" + PHOTOPRO_PACKAGE
+                + " interactive=" + interactive
+                + " keyguardLocked=" + keyguardLocked);
+
+        List<PhotographyProCameraButtonProbeDecision.KeyEventSpec> sequence =
+                PhotographyProCameraButtonProbeDecision.createSequence(
+                        activePackage, interactive, keyguardLocked);
+        if (sequence.isEmpty()) {
+            String reason = !interactive
+                    ? "device-not-interactive"
+                    : keyguardLocked
+                    ? "keyguard-locked"
+                    : !PHOTOPRO_PACKAGE.equals(activePackage)
+                    ? "foreground-package-not-photopro"
+                    : "safety-rejected";
+            log("PHOTOPRO_CAMERA_BUTTON_PROBE rejected reason=" + reason);
+            log("PHOTOPRO_CAMERA_BUTTON_PROBE complete");
+            return;
+        }
+
+        long downTime = SystemClock.uptimeMillis();
+        for (PhotographyProCameraButtonProbeDecision.KeyEventSpec spec : sequence) {
+            long eventTime = SystemClock.uptimeMillis();
+            KeyEvent event = new KeyEvent(
+                    downTime,
+                    eventTime,
+                    spec.getAction(),
+                    spec.getKeyCode(),
+                    0);
+            sendPhotographyProCameraButtonBroadcast(event);
+        }
+        log("PHOTOPRO_CAMERA_BUTTON_PROBE complete");
+    }
+
+    private void sendPhotographyProCameraButtonBroadcast(KeyEvent event) {
+        String actionName = event.getAction() == KeyEvent.ACTION_DOWN
+                ? "ACTION_DOWN" : "ACTION_UP";
+        log("PHOTOPRO_CAMERA_BUTTON_PROBE send attempt"
+                + " package=" + PHOTOPRO_PACKAGE
+                + " action=" + Intent.ACTION_CAMERA_BUTTON
+                + " keyCode=" + event.getKeyCode()
+                + " keyAction=" + actionName);
+        Intent intent = new Intent(Intent.ACTION_CAMERA_BUTTON)
+                .setPackage(PHOTOPRO_PACKAGE)
+                .putExtra(Intent.EXTRA_KEY_EVENT, event);
+        try {
+            sendBroadcast(intent);
+            log("PHOTOPRO_CAMERA_BUTTON_PROBE send returned normally"
+                    + " package=" + PHOTOPRO_PACKAGE
+                    + " action=" + Intent.ACTION_CAMERA_BUTTON
+                    + " keyCode=" + event.getKeyCode()
+                    + " keyAction=" + actionName);
+        } catch (SecurityException error) {
+            log("PHOTOPRO_CAMERA_BUTTON_PROBE send exception"
+                    + " exception=SecurityException"
+                    + " message=" + String.valueOf(error.getMessage())
+                    + " package=" + PHOTOPRO_PACKAGE
+                    + " keyAction=" + actionName);
+        } catch (RuntimeException error) {
+            log("PHOTOPRO_CAMERA_BUTTON_PROBE send exception"
+                    + " exception=" + error.getClass().getSimpleName()
+                    + " message=" + String.valueOf(error.getMessage())
+                    + " package=" + PHOTOPRO_PACKAGE
+                    + " keyAction=" + actionName);
+        }
     }
 
     private void performSonyRecAction(Om8SonyTriggerTiming timing) {

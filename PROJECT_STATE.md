@@ -75,6 +75,23 @@ profile remains protected from learned-profile replacement. This fix has not yet
 claimed that Photography Pro control works; the next action is a real-device selector
 and Learn Camera capture retest.
 
+## Photography Pro capability probe
+
+The Xperia evidence shows that Photography Pro (`com.sonymobile.photopro`) has
+no static `CAMERA_BUTTON` receiver, but registers a live dynamic
+`android.intent.action.CAMERA_BUTTON` receiver while running. The debug build
+therefore contains a temporary, DUMP-protected probe only. It is package-scoped
+to Photography Pro and sends exactly one public-API `ACTION_CAMERA_BUTTON`
+DOWN/UP pair carrying `EXTRA_KEY_EVENT`/`KEYCODE_CAMERA`, after the existing
+AccessibilityService verifies the target foreground package, interactive
+screen, and unlocked keyguard. It is not connected to OM8 input, the profile
+schema, or the Sony Video Pro path, and it does not use shell/input injection,
+hidden APIs, coordinates, or retries.
+
+The probe's `sendBroadcast()` return value is not treated as proof of camera
+behavior. The next hardware test must determine whether one new photograph is
+actually captured. No permanent Photography Pro support claim is made.
+
 ## Future normal-use direction
 
 The later product direction is setup once, remembered gimbal/profile, automatic

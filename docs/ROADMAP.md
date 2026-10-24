@@ -36,6 +36,11 @@ No additional camera application is supported or hardware-tested by this phase.
 The built-in Sony profile continues through its specialized adapter. Sony Video Pro
 is still the only camera application currently hardware-tested.
 
+The Phase 2B selector correction now discovers camera applications through merged
+launchable/video-capture/image-capture routes and targeted package visibility. The
+Xperia 1 IV Photography Pro discovery issue is recorded; Photography Pro remains an
+unverified learning candidate, not a support claim.
+
 ## Later phases
 
 1. Freeze/tag the Phase 1 generic bridge baseline.
@@ -46,4 +51,13 @@ is still the only camera application currently hardware-tested.
 5. Research a secure cooperative camera API using intents, a bound service/AIDL, or a client SDK. Do not export unauthenticated recording control.
 
 Insta360 synchronization is outside this repository and must not be added as a shortcut to camera-adapter work.
+
+## Future normal-use lifecycle (not implemented)
+
+The desired later experience is setup once, remembered/associated gimbal and profile,
+automatic bridge startup/reconnection, and direct use of the selected camera app.
+This requires careful Android background/foreground-service lifecycle handling,
+Bluetooth on/off and reboot recovery, and possibly CompanionDeviceManager evaluation.
+Bluetooth pairing alone does not provide camera control; bridge GATT connection and
+notification subscription remain necessary.
 

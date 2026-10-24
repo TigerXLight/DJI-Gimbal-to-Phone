@@ -10,6 +10,21 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.VIDEO_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <!-- The built-in profile is the only direct package visibility exception. -->
+        <package android:name="jp.co.sony.mc.videopro" />
+    </queries>
+
     <application
         android:name=".BridgeApplication"
         android:allowBackup="false"

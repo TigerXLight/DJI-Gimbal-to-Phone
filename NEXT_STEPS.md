@@ -13,6 +13,15 @@
 7. Investigate additional DJI OM model drivers separately.
 8. Evaluate CompanionDeviceManager/background presence while retaining the direct GATT driver.
 
+9. Re-test the corrected Learn Camera selector on the Xperia 1 IV and confirm that
+   Photography Pro (`com.sonymobile.photopro`) and Video Pro
+   (`jp.co.sony.mc.videopro`) are listed. Then perform the first deliberate
+   Photography Pro candidate capture; do not call it supported until that hardware
+   test passes.
+10. Keep automatic bridge startup/reconnection, remembered gimbal/profile, Bluetooth
+    on/off recovery, reboot behavior, and optional CompanionDeviceManager evaluation
+    as a later phase.
+
 Do not start Insta360 work, broader camera compatibility claims, generic arbitrary
 tapping, gimbal movement, or a public release from this baseline.
 

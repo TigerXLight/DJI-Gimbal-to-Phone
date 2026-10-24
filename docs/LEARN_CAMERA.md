@@ -48,3 +48,31 @@ fallback to another control are used.
 The built-in Sony Video Pro profile continues through its specialized adapter and
 is not routed through this generic learned test path. Sony Video Pro is the only
 camera application currently hardware-tested.
+
+## Application discovery
+
+The target list merges three Android-safe discovery routes:
+
+- launchable applications (`ACTION_MAIN` + `CATEGORY_LAUNCHER);
+- packages resolving `android.media.action.VIDEO_CAPTURE`;
+- packages resolving `android.media.action.IMAGE_CAPTURE`.
+
+Candidates are deduplicated by package and displayed with their label, package name,
+and a small source indicator. A built-in profile package can also be included when
+the installed package is visible. System/preinstalled status is not treated as
+unsafe; OEM cameras are legitimate learning targets. Only obvious infrastructure
+(System UI, Settings, launchers, and input methods) is excluded.
+
+The original Xperia selector defect queried only the launchable route, so it showed
+Game enhancer, Play store, and Support while omitting installed Photography Pro.
+Android evidence confirmed Photography Pro's video and image capture activities.
+The corrected implementation adds targeted manifest `<queries>` entries rather than
+requesting `QUERY_ALL_PACKAGES`. The post-fix selector still requires real-device
+validation; listing Photography Pro means eligible to attempt learning, not that its
+control works.
+
+The future normal-use direction is setup once followed by opening the selected camera
+directly while the bridge reconnects where Android permits. Pairing alone is not
+enough: the bridge must still manage its BLE GATT connection and notification
+subscription. Automatic startup and background lifecycle work are not part of Phase
+2B.

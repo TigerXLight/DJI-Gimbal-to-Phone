@@ -87,3 +87,21 @@ built-in Sony profile. A learned control and a recording-state verifier are sepa
 the workflow does not invent `REC`/`Stby` nodes or claim state verification merely
 because a control was captured.
 
+## Application discovery and future normal use
+
+Learn Camera discovery is a package-selection aid, not an authority to control an
+arbitrary foreground application. The app merges launchable, `VIDEO_CAPTURE`, and
+`IMAGE_CAPTURE` resolver results plus installed built-in profile packages. Targeted
+manifest `<queries>` entries provide visibility; `QUERY_ALL_PACKAGES` is not used.
+Candidates are deduplicated by package, system/preinstalled camera status is allowed,
+and only explicit infrastructure filters are applied before the user selects a
+package. Package-scoped Learn Mode and the generic adapter's exact safety checks
+remain the enforcement boundary.
+
+The eventual product direction is setup/configuration once, a remembered gimbal and
+selected profile, automatic bridge service/reconnection where Android permits, and
+direct use of the selected camera application. Pairing is not equivalent to bridge
+control: the bridge must establish/manage its own GATT connection and notification
+subscription. Background/foreground-service lifecycle, Bluetooth on/off recovery,
+reboot behavior, and optional CompanionDeviceManager evaluation are future work.
+

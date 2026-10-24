@@ -154,3 +154,24 @@ the generic learned adapter is not used for the built-in Sony profile.
 The workflow is documented in docs/LEARN_CAMERA.md. It is not a universal camera-app
 compatibility claim, and broader compatibility/lifecycle work remains future work.
 
+Learn Camera application discovery combines launchable applications with packages
+resolving `android.media.action.VIDEO_CAPTURE` and
+`android.media.action.IMAGE_CAPTURE`, then deduplicates by package. The manifest uses
+targeted `<queries>` entries for those intent families and the launcher query; it does
+not request `QUERY_ALL_PACKAGES`. System/preinstalled status is retained as display
+metadata but is not, by itself, a rejection reason. Obvious infrastructure such as
+System UI, Settings, launchers, and input methods is excluded.
+
+The selector bug found on the Xperia 1 IV was caused by querying only
+`ACTION_MAIN`/`CATEGORY_LAUNCHER`; Photography Pro's capture activities were therefore
+not candidates. Android evidence confirms `com.sonymobile.photopro` resolves both
+video and image capture, and the built-in `jp.co.sony.mc.videopro` package is also
+made visible for the built-in profile. Listing means only eligible to attempt
+learning, not supported. Photography Pro control remains untested.
+
+The intended later normal-use direction is setup once, remembered gimbal/profile,
+automatic bridge startup/reconnection where Android permits, and direct use of the
+selected camera app. Bluetooth pairing alone is not camera control: the bridge must
+still establish its own GATT connection and subscribe to the controller notifications.
+That lifecycle is future work and is not implemented by this selector fix.
+

@@ -92,3 +92,11 @@ test action. It requires the exact selected package, interactive/unlocked device
 one unambiguous usable node, and `ACTION_CLICK`. It never uses the learned node as a
 long-lived stale object. Sony Video Pro remains on the specialized adapter and is
 the only camera application currently hardware-tested.
+
+Application discovery is separate from profile compatibility. The Learn Camera list
+combines launchable apps, `VIDEO_CAPTURE` resolvers, `IMAGE_CAPTURE` resolvers, and
+the installed built-in profile package, then deduplicates by package. A listed
+package is only eligible to attempt a scoped capture; it is not a support claim.
+Preinstalled/system camera status is allowed and is never the sole rejection reason.
+The built-in Sony Video Pro profile cannot be overwritten or masqueraded as a learned
+profile.

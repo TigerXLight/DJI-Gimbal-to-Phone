@@ -131,6 +131,26 @@ The Phase 2B additions cover explicit learning state/confirmation, package scope
 candidate validation, learned origin and persistence policy, deterministic profile
 round-trip, generic exact-match/ambiguity decisions, and the existing Phase 1/2A
 controller, parser, permission, and Sony key-safety tests.
+
+## Phase 2B application-discovery validation
+
+On the Xperia 1 IV, open **Learn Camera** and confirm the list includes, when the
+applications are installed and package-visible:
+
+- Photography Pro — `com.sonymobile.photopro`;
+- Video Pro — `jp.co.sony.mc.videopro` (marked as a built-in profile where applicable).
+
+The list may also contain other launchable or capture-intent applications. The source
+indicator distinguishes `CAMERA INTENT`, `LAUNCHABLE`, and `BUILT-IN PROFILE`; none of
+these labels means supported. Verify that the same package appears only once even if
+it resolves multiple routes. System/preinstalled camera applications must remain
+eligible; obvious infrastructure remains filtered.
+
+The original failure state was Game enhancer, Play store, and Support only. That was
+caused by the launchable-only query. The corrected build adds targeted `<queries>`
+for launcher, video capture, and image capture and does not use `QUERY_ALL_PACKAGES`.
+Do not proceed to Photography Pro control claims until the deliberate capture/review/
+confirmation test succeeds.
 8. Go Home and press OM8; expect rejection and no Sony action.
 
 Use the UI Start Bridge path for this complete-bridge procedure. The debug broadcast is listener-only and is useful for OM8 driver diagnostics, not for proving that the camera adapter is selected.

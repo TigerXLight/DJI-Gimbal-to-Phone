@@ -58,6 +58,32 @@ bridge-request-to-click 0.104427 ms, verified Stby, with re-arm attempt 4. The
 4.994531 ms START value is recorded as an observed transient sample, not an
 architecture regression.
 
+## Phase 2B selector correction
+
+The first real-device Learn Camera test exposed an application-discovery defect: the
+selector showed only Game enhancer, Play store, and Support even though Photography
+Pro was installed and Android reported `com.sonymobile.photopro/.MultiWindowVideoActivity`
+for `VIDEO_CAPTURE` and `.MultiWindowActivity` for `IMAGE_CAPTURE`. The cause was the
+old selector's single `ACTION_MAIN`/`CATEGORY_LAUNCHER` query, which did not enumerate
+camera-only capture resolvers.
+
+The selector now merges launchable, video-capture, image-capture, and built-in-profile
+package candidates, deduplicates by package, and filters only explicit infrastructure.
+System/preinstalled status is not a rejection rule. Targeted manifest package
+visibility is used; `QUERY_ALL_PACKAGES` is not requested. The built-in Sony Video Pro
+profile remains protected from learned-profile replacement. This fix has not yet
+claimed that Photography Pro control works; the next action is a real-device selector
+and Learn Camera capture retest.
+
+## Future normal-use direction
+
+The later product direction is setup once, remembered gimbal/profile, automatic
+bridge startup/reconnection where Android permits, and direct opening/use of the
+selected camera application. Pairing and bridge GATT operation remain separate:
+pairing alone does not subscribe the bridge to controller notifications. Automatic
+background/foreground-service lifecycle, Bluetooth recovery, reboot behavior, and
+CompanionDeviceManager evaluation remain future work.
+
 ## Claims and limitations
 
 - Supported/proven source device: OM8 only.

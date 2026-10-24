@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
@@ -19,16 +20,14 @@ import android.widget.TextView;
 
 import com.androiddjibridge.core.CameraProfile;
 import com.androiddjibridge.core.CameraProfileCandidate;
+import com.androiddjibridge.core.CameraApplicationDiscovery;
 import com.androiddjibridge.core.CameraProfileLearningSession;
 import com.androiddjibridge.core.CameraProfileOrigin;
 import com.androiddjibridge.om8.Om8BleListenerService;
 import com.androiddjibridge.sony.VideoProKeyAccessibilityService;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /** Small bridge control surface with an explicit, package-scoped Learn Camera flow. */
 public final class MainActivity extends Activity {
@@ -189,14 +188,14 @@ public final class MainActivity extends Activity {
     }
 
     private void chooseLearningTarget() {
-        List<ApplicationChoice> choices = installedApplicationChoices();
+        List<CameraApplicationDiscovery.Candidate> choices = installedApplicationChoices();
         if (choices.isEmpty()) {
-            updateLearningStatus("No suitable launcher applications found.");
+            updateLearningStatus("No eligible camera applications found.");
             return;
         }
         CharSequence[] labels = new CharSequence[choices.size()];
         for (int index = 0; index < choices.size(); index++) {
-            labels[index] = choices.get(index).label + "\n" + choices.get(index).packageName;
+            labels[index] = discoveryLabel(choices.get(index));
         }
         new AlertDialog.Builder(this)
                 .setTitle("Select application to learn")
@@ -206,12 +205,12 @@ public final class MainActivity extends Activity {
                 .show();
     }
 
-    private void startLearning(ApplicationChoice choice) {
-        if (!VideoProKeyAccessibilityService.startLearning(choice.packageName)) {
+    private void startLearning(CameraApplicationDiscovery.Candidate choice) {
+        if (!VideoProKeyAccessibilityService.startLearning(choice.getPackageName())) {
             updateLearningStatus("Learn Mode unavailable. Enable the bridge AccessibilityService first.");
             return;
         }
-        updateLearningStatus("LEARN MODE ACTIVE for " + choice.packageName
+        updateLearningStatus("LEARN MODE ACTIVE for " + choice.getPackageName()
                 + ". Switch to that app and physically tap its Record control once.\n"
                 + "Return here and choose Review / Confirm Candidate.");
     }
@@ -305,31 +304,89 @@ public final class MainActivity extends Activity {
                 ? displayedProfiles.get(position) : null;
     }
 
-    private List<ApplicationChoice> installedApplicationChoices() {
-        Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
-        Map<String, ApplicationChoice> choices = new LinkedHashMap<>();
-        for (ResolveInfo info : getPackageManager().queryIntentActivities(intent, 0)) {
-            String packageName = info.activityInfo == null
-                    ? "" : info.activityInfo.packageName;
-            if (packageName.isEmpty() || packageName.equals(getPackageName())
-                    || isExcludedSystemPackage(packageName)) {
-                continue;
-            }
-            CharSequence label = info.loadLabel(getPackageManager());
-            choices.put(packageName, new ApplicationChoice(
-                    label == null ? packageName : label.toString(), packageName));
-        }
-        List<ApplicationChoice> result = new ArrayList<>(choices.values());
-        result.sort(Comparator.comparing(choice -> choice.label.toLowerCase()));
-        return result;
+    private List<CameraApplicationDiscovery.Candidate> installedApplicationChoices() {
+        List<CameraApplicationDiscovery.Descriptor> descriptors = new ArrayList<>();
+        collectIntentCandidates(
+                new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),
+                CameraApplicationDiscovery.Source.LAUNCHABLE, descriptors);
+        collectIntentCandidates(
+                new Intent("android.media.action.VIDEO_CAPTURE"),
+                CameraApplicationDiscovery.Source.VIDEO_CAPTURE, descriptors);
+        collectIntentCandidates(
+                new Intent("android.media.action.IMAGE_CAPTURE"),
+                CameraApplicationDiscovery.Source.IMAGE_CAPTURE, descriptors);
+        addBuiltInProfileCandidates(descriptors);
+        return CameraApplicationDiscovery.merge(descriptors, getPackageName());
     }
 
-    private boolean isExcludedSystemPackage(String packageName) {
-        return packageName.equals("com.android.systemui")
-                || packageName.equals("com.android.settings")
-                || packageName.startsWith("com.android.launcher")
-                || packageName.startsWith("com.sonymobile.launcher")
-                || packageName.contains("inputmethod");
+    private void collectIntentCandidates(
+            Intent intent,
+            CameraApplicationDiscovery.Source source,
+            List<CameraApplicationDiscovery.Descriptor> descriptors) {
+        for (ResolveInfo info : getPackageManager().queryIntentActivities(intent, 0)) {
+            if (info == null || info.activityInfo == null) {
+                continue;
+            }
+            ApplicationInfo applicationInfo = info.activityInfo.applicationInfo;
+            CharSequence label = info.loadLabel(getPackageManager());
+            descriptors.add(new CameraApplicationDiscovery.Descriptor(
+                    info.activityInfo.packageName,
+                    label == null ? info.activityInfo.packageName : label.toString(),
+                    source,
+                    applicationInfo != null
+                            && (applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0));
+        }
+    }
+
+    private void addBuiltInProfileCandidates(
+            List<CameraApplicationDiscovery.Descriptor> descriptors) {
+        BridgeApplication application = (BridgeApplication) getApplication();
+        for (CameraProfile profile : application.getProfiles()) {
+            if (profile.getOrigin() != CameraProfileOrigin.BUILTIN) {
+                continue;
+            }
+            try {
+                ApplicationInfo applicationInfo = getPackageManager().getApplicationInfo(
+                        profile.getPackageName(), 0);
+                CharSequence label = getPackageManager().getApplicationLabel(applicationInfo);
+                descriptors.add(new CameraApplicationDiscovery.Descriptor(
+                        profile.getPackageName(),
+                        label == null ? profile.getDisplayName() : label.toString(),
+                        CameraApplicationDiscovery.Source.BUILTIN_PROFILE,
+                        (applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0));
+            } catch (PackageManager.NameNotFoundException ignored) {
+                // The built-in profile is retained in the profile registry but is not
+                // offered for learning when its application is not installed.
+            }
+        }
+    }
+
+    private String discoveryLabel(CameraApplicationDiscovery.Candidate candidate) {
+        StringBuilder result = new StringBuilder()
+                .append(candidate.getDisplayName())
+                .append("\n")
+                .append(candidate.getPackageName())
+                .append(" [");
+        boolean first = true;
+        if (candidate.hasSource(CameraApplicationDiscovery.Source.VIDEO_CAPTURE)
+                || candidate.hasSource(CameraApplicationDiscovery.Source.IMAGE_CAPTURE)) {
+            result.append("CAMERA INTENT");
+            first = false;
+        }
+        if (candidate.hasSource(CameraApplicationDiscovery.Source.LAUNCHABLE)) {
+            if (!first) {
+                result.append(", ");
+            }
+            result.append("LAUNCHABLE");
+            first = false;
+        }
+        if (candidate.hasSource(CameraApplicationDiscovery.Source.BUILTIN_PROFILE)) {
+            if (!first) {
+                result.append(", ");
+            }
+            result.append("BUILT-IN PROFILE");
+        }
+        return result.append(']').toString();
     }
 
     private String applicationLabel(String packageName) {
@@ -394,13 +451,4 @@ public final class MainActivity extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
-    private static final class ApplicationChoice {
-        private final String label;
-        private final String packageName;
-
-        private ApplicationChoice(String label, String packageName) {
-            this.label = label;
-            this.packageName = packageName;
-        }
-    }
 }

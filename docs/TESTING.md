@@ -14,7 +14,7 @@ The parser/edge and core-routing self-tests are kept as source-level regression 
 ## Exact debug-device commands
 
 ~~~cmd
-cd /d "T:\References\to go\Media\Android-DJI-OM-Bridge"
+cd /d "T:\References\to go\Media\tools\Android-DJI-OM-Bridge"
 adb install -r "app\build\outputs\apk\debug\app-debug.apk"
 adb logcat -c
 adb shell am start -n com.androiddjibridge/com.androiddjibridge.app.MainActivity

@@ -23,19 +23,17 @@
     Capture a physical/shell/ordinary-broadcast A/B trace if device tooling is
     available. Do not map OM8 input or create a Photography Pro profile from
     this result.
-11. Keep automatic bridge startup/reconnection, remembered gimbal/profile, Bluetooth
-    on/off recovery, reboot behavior, and optional CompanionDeviceManager evaluation
-    as a later phase.
+11. Implement Phase 3B background/automatic gimbal connection using an explicit
+    association/presence path and the existing connected-device GATT service.
 
-12. Hardware-regress Phase 3A with exactly two OM8 presses: Sony START then STOP.
-    Confirm one action per Record rising edge, release no-op, REC/Stby verification,
-    prepared-node/safety-snapshot use, and delayed re-arm. Do not call this a
-    Phase 3A hardware PASS until that test is recorded.
+12. Phase 3A hardware regression is PASS: two OM8 presses produced Sony START/STOP,
+    release no-op, REC/Stby verification, prepared-node/safety-snapshot use, and
+    delayed re-arm. Preserve this result as the functional reference.
 13. Add later camera-specific adapters only with selector/state evidence and an
     explicit validation tier. Keep `CAPTURE_PHOTO` semantic only until a safe
     ordinary-app backend is proven for a target camera.
-14. Treat background auto-connect, CompanionDeviceManager, OM8 slider decoding,
-    and additional camera adapters as separate future phases.
+14. Treat OM8 slider decoding, additional camera adapters, and controller-mapping UI
+    as separate future work after Phase 3B.
 
 Do not start Insta360 work, broader camera compatibility claims, generic arbitrary
 tapping, gimbal movement, or a public release from this baseline.

@@ -42,7 +42,7 @@ Xperia 1 IV Photography Pro discovery issue is recorded. The ordinary-app
 CAMERA_BUTTON probe is now `TESTED_NEGATIVE`; Photography Pro remains an open
 backend investigation and is not a support claim.
 
-## Phase 3A — IMPLEMENTED / HARDWARE REGRESSION PENDING
+## Phase 3A — COMPLETE / HARDWARE PASS
 
 - Pure `ControllerEvent -> MappingEngine -> CameraAction -> CameraAdapter`
   foundation.
@@ -53,9 +53,18 @@ backend investigation and is not a support claim.
   moved into the generic mapping layer.
 - MIT OpenGimbal mapping-boundary adaptation with attribution and notices.
 
-Phase 3A is not hardware PASS until the planned two-press Sony START/STOP regression
-is recorded. Background auto-start, CompanionDeviceManager, OM8 slider decoding,
-FFF5 writes, and new camera adapters remain later work.
+The two-press Xperia 1 IV + OM8 + Sony Video Pro regression passed. START verified
+REC and re-armed on attempt 1; STOP verified Stby and re-armed on attempt 4; release
+produced no duplicate action. Background auto-start, CompanionDeviceManager,
+OM8 slider decoding, FFF5 writes, and new camera adapters remain separate work.
+
+## Phase 3B — IN PROGRESS / BACKGROUND GIMBAL LIFECYCLE
+
+- Remembered Android companion association for an OM8 name/service identity.
+- Companion Device presence callbacks as the background wake-up signal.
+- Existing connected-device foreground GATT service as the actual FFF0/FFF4 owner.
+- Bounded reconnect/recovery remains in the OM8 driver, with duplicate-operation guards.
+- Camera readiness remains separate from Gimbal READY.
 
 ## Later phases
 

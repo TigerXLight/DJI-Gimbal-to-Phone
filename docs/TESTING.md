@@ -164,6 +164,28 @@ caused by the launchable-only query. The corrected build adds targeted `<queries
 for launcher, video capture, and image capture and does not use `QUERY_ALL_PACKAGES`.
 Do not proceed to Photography Pro control claims until the deliberate capture/review/
 confirmation test succeeds.
+
+## Phase 3A hardware regression — PASS
+
+Test matrix: Sony Xperia 1 IV + DJI Osmo Mobile 8 + Sony Video Pro.
+
+The required two-press test passed:
+
+- START, `om8PressSequence=1`: prepared-node direct action, safety-snapshot fast
+  path, `mainDispatchSkipped=true`, `preClickRecStatusQuery=false`, verified REC,
+  re-arm attempt 1.
+- STOP, `om8PressSequence=2`: prepared-node direct action, safety-snapshot fast
+  path, `mainDispatchSkipped=true`, `preClickRecStatusQuery=false`, verified Stby,
+  re-arm attempt 4 after transient `enabled` failures on attempts 1–3.
+- Both Record releases produced no duplicate camera action.
+
+| Press | Notification -> detection | Detection -> click | Notification -> click | Bridge request -> click |
+| --- | ---: | ---: | ---: | ---: |
+| START | 0.335052 ms | 2.154323 ms | 2.489375 ms | 0.265834 ms |
+| STOP | 0.048646 ms | 0.103073 ms | 0.151719 ms | 0.035364 ms |
+
+This closes Phase 3A as **HARDWARE PASS**. Phase 3B background lifecycle testing is
+separate and must not be inferred from this result.
 8. Go Home and press OM8; expect rejection and no Sony action.
 
 Use the UI Start Bridge path for this complete-bridge procedure. The debug broadcast is listener-only and is useful for OM8 driver diagnostics, not for proving that the camera adapter is selected.

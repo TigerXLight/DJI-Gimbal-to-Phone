@@ -200,3 +200,11 @@ OpenGimbal mapping boundary with attribution; no HJ360 protocol or screenshot,
 coordinate, or gesture fallback was imported. See `LICENSE_MAP.md`,
 `DEPENDENCIES_AND_PROVENANCE.md`, and `THIRD_PARTY_NOTICES.md`.
 
+### Phase 3A hardware validation — PASS
+
+The two-press Xperia 1 IV + DJI OM8 + Sony Video Pro regression passed. START
+verified REC and re-armed on attempt 1; STOP verified Stby and re-armed on attempt 4;
+Record release caused no duplicate action. Both actions used the prepared-node and
+safety-snapshot paths with direct main-looper dispatch. Phase 3B background
+connection lifecycle is a separate implementation and validation task.
+

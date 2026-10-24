@@ -60,6 +60,22 @@ Sony accepts only `RECORD_TOGGLE` and still owns the complete specialized action
 path. Continuous-axis action capacity is modelled only; no unmeasured OM8 slider
 packet is decoded.
 
+## Phase 3A hardware regression — PASS
+
+Tested on Sony Xperia 1 IV + DJI Osmo Mobile 8 + Sony Video Pro. The two-press
+regression confirmed one mapped action per Record rising edge, no release duplicate,
+prepared-node and safety-snapshot fast paths, main-looper direct dispatch, REC/Stby
+verification, and delayed re-arm.
+
+| Press | Callback -> detection | Callback -> Sony click | Bridge request -> Sony click | Verified | Re-arm |
+| --- | ---: | ---: | ---: | --- | --- |
+| START, sequence 1 | 0.335052 ms | 2.489375 ms | 0.265834 ms | REC | attempt 1 |
+| STOP, sequence 2 | 0.048646 ms | 0.151719 ms | 0.035364 ms | Stby | attempt 4 |
+
+Both presses used the prepared-node and safety-snapshot fast paths, with
+`preClickRecStatusQuery=false`, `gattCallbackOnMainLooper=true`,
+`sonyBridgeAlreadyOnMainLooper=true`, and `mainDispatchSkipped=true`.
+
 Phase 2A hardware regression is PASS on Sony Xperia 1 IV + DJI Osmo Mobile 8 + Sony
 Video Pro. The tested START sample was callback-to-detection 0.108854 ms,
 callback-to-click 4.994531 ms, bridge-request-to-click 0.354948 ms, verified REC,
@@ -123,7 +139,7 @@ CompanionDeviceManager evaluation remain future work.
 - Current adapter: Sony Video Pro only.
 - No universal DJI, Android-phone, or camera-app support is claimed.
 - No Insta360 implementation is present.
-- Phase 3A has not implemented background auto-start, CompanionDeviceManager,
+- Phase 3A did not implement background auto-start, CompanionDeviceManager,
   slider reverse engineering, Pixel/Samsung adapters, or Photography Pro control.
 
 ## Source boundary

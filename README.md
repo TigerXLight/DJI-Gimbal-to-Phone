@@ -12,7 +12,11 @@ License: not yet selected. Repository should not be publicly released until lice
 
 ## Phase 1 status
 
-The extracted driver and Sony Video Pro adapter are buildable. The OM8 parser, Record rising-edge behavior, recovery state machine, and Sony prepared Accessibility action are carried over from the frozen reference. Real-device regression from this new repository is still **PENDING USER TEST**.
+**BUILD/UNIT TEST: PASS**
+
+**HARDWARE REGRESSION: PASS** on Sony Xperia 1 IV + DJI Osmo Mobile 8 + Sony Video Pro.
+
+The extracted driver and Sony Video Pro adapter passed the real-device regression. The OM8 parser, Record rising-edge behavior, recovery state machine, and Sony prepared Accessibility action are carried over from the frozen reference.
 
 Supported/proven source device:
 
@@ -27,6 +31,33 @@ Currently evidenced phone:
 - Sony Xperia 1 IV.
 
 These entries are not universal compatibility claims. Other DJI OM models, Android phone brands, and camera apps require separate evidence.
+
+## Phase 1 hardware validation
+
+The new repository was tested on the real setup above:
+
+- Direct OM8 BLE connection worked.
+- FFF0/FFF4 discovery and FFF4 CCCD notification enable worked.
+- CONNECTION_PRIORITY_HIGH submitted successfully once for the connection.
+- Physical RECORD_DOWN and RECORD_UP were received.
+- Release did not produce a duplicate Sony action.
+- Generic ControllerEvent -> BridgeController -> SonyVideoProCameraAdapter routing worked.
+- A press outside Sony Video Pro was rejected with OM8_SONY_TRIGGER_REJECTED reason=foreground-package-not-video-pro.
+- Sony START verified REC; Sony STOP verified Stby.
+- Prepared-node and safety-snapshot fast paths survived extraction.
+- Successful actions reported mainThreadQueueNanos=0.
+- STOP re-arm succeeded on attempt 4.
+
+Representative measured samples:
+
+| Action | Callback -> detection | Callback -> Sony click | Bridge request -> Sony click | Verified state |
+| --- | ---: | ---: | ---: | --- |
+| START | 0.064896 ms | 0.366666 ms | 0.224166 ms | REC |
+| STOP | 0.045677 ms | 1.522708 ms | 0.117448 ms | Stby |
+
+The 1.522708 ms STOP value is one observed sample/outlier, not a claimed permanent regression.
+
+The Android release/version of the test handset was not recorded in the available Phase 1 source/frozen evidence. The project build target SDK is not a claim about the handset's Android release.
 
 ## What it does
 
@@ -65,6 +96,12 @@ adb shell am start -n com.androiddjibridge/com.androiddjibridge.app.MainActivity
 ~~~
 
 The debug build also has protected, explicit diagnostic receivers. See docs/TESTING.md for exact bridge-start and Logcat commands.
+
+## Startup modes
+
+Use the app UI's **Start Bridge** control for normal operation. It starts the complete bridge with the selected Sony Video Pro adapter available.
+
+The debug broadcast com.androiddjibridge.OM8_LISTENER_START is an OM8-driver/listener diagnostic control. It can start scanning and reach OM8 LISTENER READY, but that is only Gimbal READY; it does not by itself guarantee that the complete camera bridge is initialized. A driver-only start may therefore log BRIDGE_EVENT_REJECTED reason=no-selected-camera-adapter-or-camera-service. Use the UI path for the complete bridge until startup ownership is intentionally redesigned.
 
 ## Accessibility requirement
 

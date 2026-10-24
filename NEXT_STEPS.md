@@ -1,8 +1,8 @@
 # Next steps
 
-1. Hardware regression on Sony Xperia 1 IV + OM8 + Sony Video Pro using docs/TESTING.md.
-2. Fix extraction regressions only if the user test finds one.
-3. Freeze/tag the first generic bridge baseline after hardware PASS.
+1. Freeze/tag the Phase 1 generic bridge baseline after this hardware PASS.
+2. Keep the normal UI Start Bridge path as the documented complete-startup path; treat the debug OM8 broadcast as listener-only.
+3. Start Phase 2 only after a separate approved specification; no Phase 2 implementation is included here.
 4. Implement the generic Accessibility camera-profile engine.
 5. Implement profile learning.
 6. Test a non-Sony camera app.

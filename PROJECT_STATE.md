@@ -12,11 +12,24 @@
 
 ## Software status
 
-Build and Gradle unit-test tasks passed during extraction. Pure source self-tests are present for core routing, OM8 parser/edge behavior, foreground-service permission decisions, and Sony key-safety decisions.
+**BUILD/UNIT TEST: PASS.** Gradle test tasks and the Phase 1 source self-tests pass. Tests cover core routing, OM8 parser/edge behavior, foreground-service permission decisions, and Sony key-safety decisions.
 
 ## Hardware status
 
-**PENDING USER TEST for this new repository.** The same hardware path is proven in the frozen private project on Sony Xperia 1 IV + OM8 + Sony Video Pro, but this repository must be installed and regression-tested independently.
+**HARDWARE REGRESSION: PASS.** Tested on Sony Xperia 1 IV + DJI Osmo Mobile 8 + Sony Video Pro.
+
+Verified in the new repository:
+
+- Direct OM8 BLE, FFF0/FFF4 discovery, CCCD enable, and HIGH-priority request submission.
+- Physical Record down/up events with release duplicate protection.
+- Generic event routing through BridgeController and SonyVideoProCameraAdapter.
+- Sony foreground rejection, START -> REC, and STOP -> Stby.
+- Prepared-node and safety-snapshot paths, with successful actions reporting mainThreadQueueNanos=0.
+- STOP delayed re-arm, successful on attempt 4 in the tested cycle.
+
+The Android release/version of the test handset was not recorded in the available source/frozen evidence. Build target SDK 35 must not be interpreted as the handset Android version.
+
+The debug broadcast com.androiddjibridge.OM8_LISTENER_START starts the OM8 driver/listener diagnostic path only. OM8 LISTENER READY means Gimbal READY, not necessarily Bridge READY. The normal UI Start Bridge path is the complete startup path with the selected Sony adapter available.
 
 ## Claims and limitations
 

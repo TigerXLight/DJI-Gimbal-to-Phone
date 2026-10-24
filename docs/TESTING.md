@@ -18,9 +18,18 @@ cd /d "T:\References\to go\Media\tools\Android-DJI-OM-Bridge"
 adb install -r "app\build\outputs\apk\debug\app-debug.apk"
 adb logcat -c
 adb shell am start -n com.androiddjibridge/com.androiddjibridge.app.MainActivity
-adb shell am broadcast -a com.androiddjibridge.OM8_LISTENER_START -n com.androiddjibridge/com.androiddjibridge.app.Om8DiagnosticReceiver
 adb logcat -v time -s Om8BleListenerService:I VideoProKeyAccessibilityService:I Om8DiagnosticReceiver:I *:S
 ~~~
+
+After the app opens, use Start Bridge in the UI for the complete bridge startup. This initializes the normal selected-camera path and starts the OM8 driver.
+
+The optional debug command below starts the OM8 listener/driver only:
+
+~~~cmd
+adb shell am broadcast -a com.androiddjibridge.OM8_LISTENER_START -n com.androiddjibridge/com.androiddjibridge.app.Om8DiagnosticReceiver
+~~~
+
+OM8 LISTENER READY means Gimbal READY only. The debug broadcast must not be treated as proof of Bridge READY / camera adapter available; it may produce BRIDGE_EVENT_REJECTED reason=no-selected-camera-adapter-or-camera-service. This diagnostic distinction is intentional and no startup behavior is changed by this documentation closeout.
 
 Short timing dump after a test:
 
@@ -30,9 +39,37 @@ adb logcat -d -v time | findstr /i "OM8_REC_PRESS CONTROLLER_EVENT SONY_ACTION_C
 
 If adb is not on PATH, substitute the platform-tools adb.exe path for this repository.
 
-## Two-to-three press hardware regression
+## Phase 1 hardware regression — PASS
 
-Hardware status for this new repository is **PENDING USER TEST**. On the Xperia 1 IV:
+Tested matrix:
+
+- Gimbal: DJI Osmo Mobile 8 — tested.
+- Phone: Sony Xperia 1 IV — tested.
+- Camera: Sony Video Pro, package jp.co.sony.mc.videopro — tested.
+- Android release/version: not recorded in the available Phase 1 source/frozen evidence; no device-version claim is made.
+
+Verified:
+
+- Direct BLE connection, FFF0/FFF4 discovery, CCCD enable, and successful HIGH-priority request submission.
+- Physical RECORD_DOWN/RECORD_UP, with release producing no duplicate camera action.
+- Generic controller-event routing through the Sony adapter.
+- Non-Sony foreground rejection with OM8_SONY_TRIGGER_REJECTED reason=foreground-package-not-video-pro.
+- START -> REC and STOP -> Stby.
+- Prepared-node/safety-snapshot paths and mainThreadQueueNanos=0 on successful tested actions.
+- STOP re-arm succeeded on attempt 4.
+
+Representative samples:
+
+| Action | Callback -> detection | Callback -> Sony click | Bridge request -> Sony click | Verified state |
+| --- | ---: | ---: | ---: | --- |
+| START | 0.064896 ms | 0.366666 ms | 0.224166 ms | REC |
+| STOP | 0.045677 ms | 1.522708 ms | 0.117448 ms | Stby |
+
+The 1.522708 ms STOP value is recorded as an observed sample/outlier only; it is not treated as a permanent regression.
+
+## Reproduction procedure
+
+Hardware status for this new repository is **HARDWARE REGRESSION: PASS**. On the Xperia 1 IV:
 
 1. Install the debug APK and grant Nearby Devices if requested.
 2. Enable the bridge AccessibilityService.
@@ -43,7 +80,7 @@ Hardware status for this new repository is **PENDING USER TEST**. On the Xperia 
 7. Optionally press a third time to confirm START again.
 8. Go Home and press OM8; expect rejection and no Sony action.
 
-Do not claim a hardware PASS from the build or unit tests. Record the phone, OM8 name, camera-app version, connection/recovery result, and any safety rejection when reporting the regression.
+Use the UI Start Bridge path for this complete-bridge procedure. The debug broadcast is listener-only and is useful for OM8 driver diagnostics, not for proving that the camera adapter is selected.
 
 ## Timing interpretation
 

@@ -33,7 +33,11 @@ public final class AndroidMappingStore {
         }
         String key = PROFILE_KEY_PREFIX + safeProfileKey(profileId);
         if (!preferences.contains(key) && preferences.contains(JSON_KEY)) {
-            return loadForKey(JSON_KEY);
+            // Migrate the pre-profile setting once. Future loads are then isolated
+            // to this camera application's stable profile identity.
+            MappingStore legacy = loadForKey(JSON_KEY);
+            saveForKey(key, legacy);
+            return legacy;
         }
         return loadForKey(key);
     }

@@ -128,11 +128,18 @@ added.
 The later product direction is setup once, remembered gimbal/profile, automatic
 bridge startup/reconnection where Android permits, and direct opening/use of the
 selected camera application. Pairing and bridge GATT operation remain separate:
-pairing alone does not subscribe the bridge to controller notifications. Automatic
-background/foreground-service lifecycle, Bluetooth recovery, reboot behavior, and
-Phase 3B now implements the first CompanionDeviceManager/CompanionDeviceService
-wake-up path and retains the existing connected-device foreground GATT service.
-Broader reboot/process-death behavior remains later lifecycle validation.
+pairing alone does not subscribe the bridge to controller notifications. The app
+uses CompanionDeviceManager presence plus an Android `BOOT_COMPLETED` receiver to
+request the existing connected-device foreground GATT service after reboot when an
+association exists and manual Disconnect is not active. Android may still defer
+recovery for force-stopped apps or device policy; readiness remains independently
+verified.
+
+The consumer-preview acceptance run exposed and fixed three product issues: the
+mapping editor displayed `None` instead of the stored Sony default, profile saves
+could be redirected by transient foreground-profile clearing, and the visible
+Activity refreshed status only on lifecycle recreation. The editor now loads/saves
+by stable profile ID, and the Activity observes service status changes live.
 
 ## Claims and limitations
 
@@ -224,8 +231,11 @@ existing Sony Video Pro specialized adapter remains the only adapter capable of
 the hardware-tested Record action.
 
 The current productization build is `0.2.0-consumer-preview`, versionCode `2`.
-Automated tests/build are passing, but the full product-level Xperia 1 IV + OM8
-acceptance matrix has not yet been rerun on this UI/lifecycle build. The release
-gate also still requires an explicit project licence and public-file
-sanitization; no 1.0 or public GitHub claim is made yet.
+The targeted Xperia 1 IV + OM8 acceptance checks A--G passed after the lifecycle
+fixes: Sony default mapping, profile persistence, Sony START/STOP, live
+Bluetooth status, power-cycle recovery, Bluetooth recovery, and non-destructive
+process recreation. Test D was `N/A` because no second camera app was configured.
+The remaining long-form reboot/repeated-pair portion was intentionally not
+repeated after the already successful targeted reboot and timing evidence; this
+preview is not a 1.0/publication claim.
 

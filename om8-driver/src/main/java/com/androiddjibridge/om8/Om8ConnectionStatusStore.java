@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 
 /** Small process-independent status snapshot used by the consumer UI/notification. */
 public final class Om8ConnectionStatusStore {
+    public static final String ACTION_STATUS_CHANGED =
+            "com.androiddjibridge.OM8_CONNECTION_STATUS_CHANGED";
     private static final String PREFERENCES = "om8_connection_status";
     private static final String STATE = "state";
     private static final String DEVICE_NAME = "device_name";
@@ -17,12 +19,17 @@ public final class Om8ConnectionStatusStore {
         if (context == null) {
             return;
         }
-        context.getApplicationContext().getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+        Context applicationContext = context.getApplicationContext();
+        applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
                 .edit()
                 .putString(STATE, state == null ? "DISCONNECTED" : state)
                 .putString(DEVICE_NAME, name == null ? "" : name)
                 .putString(DEVICE_ADDRESS, address == null ? "" : address)
                 .apply();
+        // The service remains the source of truth. This explicit in-app signal lets
+        // a visible Activity refresh without creating another GATT owner or polling BLE.
+        applicationContext.sendBroadcast(new android.content.Intent(ACTION_STATUS_CHANGED)
+                .setPackage(applicationContext.getPackageName()));
     }
 
     public static Snapshot read(Context context) {

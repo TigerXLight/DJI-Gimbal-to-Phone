@@ -26,6 +26,12 @@ public final class MappingEngineSelfTest {
         String serialized = MappingJsonCodec.toJson(remapped);
         require(serialized.equals(MappingJsonCodec.toJson(MappingJsonCodec.fromJson(serialized))),
                 "mapping JSON round trip is deterministic");
+        MappingStore reloaded = MappingJsonCodec.fromJson(serialized);
+        require(reloaded.actionFor(ControllerTrigger.RECORD_PRESS) == CameraAction.CAPTURE_PHOTO,
+                "explicit saved action survives reload");
+        require(MappingStore.defaults().actionFor(ControllerTrigger.RECORD_PRESS)
+                        == CameraAction.RECORD_TOGGLE,
+                "Sony-safe default remains record toggle");
 
         require(engine.getStore().withMapping(
                         ControllerTrigger.SLIDER_AXIS, CameraAction.ZOOM_AXIS)

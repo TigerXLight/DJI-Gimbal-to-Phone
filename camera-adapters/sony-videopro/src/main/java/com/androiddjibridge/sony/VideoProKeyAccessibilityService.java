@@ -1052,6 +1052,7 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
             }
 
             if (fromOm8) {
+                timing.tPreparedActionReadyNanos = SystemClock.elapsedRealtimeNanos();
                 timing.tPerformActionStartNanos = SystemClock.elapsedRealtimeNanos();
             }
             long actionClickNanos = fromOm8
@@ -1865,6 +1866,8 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
                 .append(timing.tPerformActionStartNanos)
                 .append(" t_perform_action_end=")
                 .append(timing.tPerformActionEndNanos)
+                 .append(" t_prepared_action_ready=")
+                 .append(timing.tPreparedActionReadyNanos)
                 .append(" t_action_return=")
                 .append(timing.tPerformActionEndNanos)
                 .append(" t_sony_action_click=")
@@ -1956,6 +1959,9 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
                 .append(delta(timing.tNodeValidationStartNanos, timing.tNodeValidationEndNanos))
                 .append(" performActionCallNanos=")
                 .append(delta(timing.tPerformActionStartNanos, timing.tPerformActionEndNanos))
+                 .append(" preparedActionToClickNanos=")
+                 .append(delta(timing.tPreparedActionReadyNanos,
+                         timing.tPerformActionStartNanos))
                 .append(" notificationToDetectionNanos=")
                 .append(delta(timing.tBleCallbackEnterNanos, timing.tEdgeDetectEndNanos))
                 .append(" detectionToSonyClickNanos=")

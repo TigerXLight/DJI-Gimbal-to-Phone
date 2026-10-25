@@ -62,6 +62,8 @@ public final class SonyVideoProCameraAdapter implements CameraAdapter {
         Om8SonyTriggerTiming timing = new Om8SonyTriggerTiming();
         timing.om8PressSequence = event.getSequence();
         timing.tBleCallbackEnterNanos = event.getCallbackEnteredAtNanos();
+        timing.tDumlParseStartNanos = event.getControlParseStartedAtNanos();
+        timing.tDumlParseEndNanos = event.getControlParseCompletedAtNanos();
         timing.tEdgeDetectEndNanos = event.getEventDetectedAtNanos();
         timing.gattCallbackOnMainLooper = event.isCallbackOnMainLooper();
         timing.gattCallbackThreadId = event.getCallbackThreadId();

@@ -327,8 +327,8 @@ for this DJI closeout.
 
 ## Consumer-preview acceptance checklist
 
-The productization build is `0.2.0-consumer-preview` (versionCode `2`). The
-following product-level checks are still required before promoting it to 1.0:
+The productization build remains `0.2.0-consumer-preview` (versionCode `2`). The
+following product-level checks are still required before any 1.0/publication decision:
 
 1. With no saved association, open **DJI Gimbal Bridge**, press **Find DJI
    Gimbal**, select the nearby `OM8-*` device, and confirm the association is
@@ -344,8 +344,10 @@ following product-level checks are still required before promoting it to 1.0:
    suppress immediate auto-reconnect without erasing the remembered association;
    Forget must clear it.
 6. Test OM8 power-cycle, Bluetooth off/on, process/service recreation, and phone
-   reboot without clearing app data. Record exactly whether Android requires one
-   post-reboot app launch on the tested OS.
+   reboot without clearing app data. The app now requests the existing
+   `connectedDevice` service from an Android `BOOT_COMPLETED` receiver when an
+   association exists and Disconnect is not active. Record whether the tested OS
+   delivers that recovery; force-stopped apps and device policy may still prevent it.
 7. Inspect Android Bluetooth Settings and Quick Settings while the bridge owns
    the GATT connection. Record whether the OM8 is surfaced as connected/bonded;
    do not force bonding. The app notification must say **DJI Gimbal Bridge** and
@@ -353,13 +355,72 @@ following product-level checks are still required before promoting it to 1.0:
 8. Run five bounded START/STOP pairs and retain the timing lines. Report
    notification callback -> edge detection, callback -> ACTION_CLICK, click ->
    authoritative REC/Stby verification, and total callback -> verification for
-   START and STOP separately, with min/median/max. These are application-side
-   timings, not physical-button-to-media-start latency.
+    START and STOP separately, with min/median/max. These are application-side
+    timings, not physical-button-to-media-start latency.
+
+The mapping editor opens on the stored value for the selected camera app. Sony
+Video Pro's default is `Record Press -> Record toggle`; explicit saves are stored
+under the profile stable ID and must survive Activity/process recreation. The
+acceptance script records `PASS`, `FAIL`, `N/A`, or `OBSERVATION` per physical
+sample and waits for the requested ADB serial to return as `device` after reboot
+before attempting to launch the Activity.
 
 The final acceptance result must be labelled **PASS**, **FAIL**, or
 **NOT RUN**. A passing unit suite and APK build do not substitute for this
 product-level device run. The unresolved OM8 side-wheel rotation does not block
 1.0 if it remains visibly unavailable and is not advertised as supported.
+
+## 2026-10-25 bounded Record hot-path profile
+
+After the consumer lifecycle fixes, a quiet, bounded Xperia 1 IV run measured
+five START and five STOP presses without raw diagnostics enabled. All ten
+presses produced the expected authoritative Sony state sequence:
+
+`REC, Stby, REC, Stby, REC, Stby, REC, Stby, REC, Stby`.
+
+The primary metric is callback entry (T0) to the start of the prepared Sony
+`ACTION_CLICK` call (T4). START samples in milliseconds were
+`0.328645, 0.336250, 1.377708, 0.335000, 0.469583` (min `0.328645`,
+median `0.336250`, max `1.377708`). STOP samples were
+`0.341042, 0.571511, 0.339167, 0.405417, 0.322761` (min `0.322761`,
+median `0.341042`, max `0.571511`). Nine of ten samples were below 1 ms;
+the single 1.377708 ms START sample is retained as an outlier rather than
+discarded.
+
+The quiet hot path uses an in-memory control-only parser with no retained frame
+when diagnostics are off. It performs no storage, UI, serialization, or file
+work before the click. The post-UI sanity pair again verified REC then Stby,
+with prepared-node and safety-snapshot fast paths and no duplicate release
+action. These are callback-to-click measurements, not physical travel or
+camera media-pipeline latency.
+
+## 2026-10-25 targeted consumer retest
+
+On Xperia 1 IV `QV770840CQ` with OM8 `OM8-15QPML`, the targeted checks A--G
+passed on the consumer-preview build. The Sony default was
+`Record Press -> Record toggle`; the profile mapping survived navigation,
+process recreation, and reboot; Sony Video Pro START/STOP verified `REC` and
+`Stby`; the visible Bluetooth state updated live; power-cycle and Bluetooth
+off/on recovery reconnected without Start Bridge; and non-destructive process
+recreation preserved the active Sony adapter. Test D was recorded `N/A` because
+no second camera application was configured.
+
+The first process-recreation attempt used `adb shell am force-stop`, which the
+Xperia treated as revoking the user-enabled Accessibility service. It produced
+the expected fail-closed `no-selected-camera-adapter-or-camera-service` result
+and was not treated as an app-runtime regression. The acceptance harness now
+uses `adb shell am kill` for process recreation and retains explicit per-sample
+PASS/FAIL/N/A/OBSERVATION notes. The post-reboot service check showed
+Accessibility still enabled/bound and the OM8 service reconnecting without
+opening the bridge Activity. One clean post-reboot timing sample measured
+notification-to-ACTION_CLICK at approximately 2.955 ms START and 2.481 ms
+STOP, with authoritative state verification at approximately 290 ms and 272 ms
+after the click respectively. These are application-side timings, not physical
+button-to-media-start latency.
+
+The long-form reboot/repeated-five-pair section was intentionally stopped after
+the targeted checks passed to avoid redundant hardware wear. The preview remains
+pre-1.0 and unpublished.
 
 ## Public-release gate
 

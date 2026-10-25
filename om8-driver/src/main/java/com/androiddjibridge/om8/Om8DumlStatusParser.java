@@ -41,6 +41,18 @@ public final class Om8DumlStatusParser {
     }
 
     public static Result parse(byte[] notification) {
+        return parseInternal(notification, true);
+    }
+
+    /**
+     * Normal receive-path parse. It retains no frame copy because the caller only
+     * needs the validated control fields when raw diagnostics are disabled.
+     */
+    public static Result parseForControl(byte[] notification) {
+        return parseInternal(notification, false);
+    }
+
+    private static Result parseInternal(byte[] notification, boolean retainFrame) {
         if (notification == null) {
             return Result.invalid("null-notification");
         }
@@ -56,7 +68,9 @@ public final class Om8DumlStatusParser {
                     + " received=" + notification.length);
         }
 
-        byte[] frame = Arrays.copyOf(notification, declaredLength);
+        byte[] frame = !retainFrame || declaredLength == notification.length
+                ? notification
+                : Arrays.copyOf(notification, declaredLength);
         if ((frame[0] & 0xFF) != FRAME_MARKER) {
             return Result.invalid("bad-marker");
         }
@@ -86,7 +100,7 @@ public final class Om8DumlStatusParser {
         int triggerByte = modeByte;
         int switchByte = frame[PAYLOAD_OFFSET + 5] & 0xFF;
         int buttonByte = frame[PAYLOAD_OFFSET + 6] & 0xFF;
-        return Result.valid(frame, joystickX, joystickY, modeByte, triggerByte,
+        return Result.valid(retainFrame ? frame : null, joystickX, joystickY, modeByte, triggerByte,
                 switchByte, buttonByte);
     }
 

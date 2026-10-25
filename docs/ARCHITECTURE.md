@@ -246,7 +246,35 @@ application happens to be visible.
 
 The ordinary UI contains only connection setup, camera-app presets, and mapping
 entry points. Raw FFF4 diagnostics, reconnect recovery, and learned-profile test
-controls are inside the collapsed **Advanced / Diagnostics** section. This UI
-organization does not change the proven Record rising-edge, Sony prepared-node,
+controls are inside the collapsed **Advanced / Diagnostics** section. The visible
+Activity observes the service-published connection-status signal, so Bluetooth
+off/on and reconnect transitions are reflected without recreating the screen. This
+UI organization does not change the proven Record rising-edge, Sony prepared-node,
 safety-snapshot, verification, or re-arm path.
+
+### Record dispatch hot-path contract
+
+The steady-state OM8 Record path is deliberately kept in memory:
+
+`FFF4 callback -> control-only DUML parse -> rising-edge detection -> resident mapping/profile -> prepared Sony safety/action checks -> ACTION_CLICK`
+
+The interval from callback entry (T0) through the start of `ACTION_CLICK` (T4)
+must not perform SharedPreferences/DataStore reads or writes, mapping
+serialization, UI redraw/broadcast work, human-readable diagnostic formatting,
+or file I/O. Normal diagnostics are off by default; the control-only parser does
+not retain a frame when diagnostics are off. Sony state verification, re-arm,
+timing-log formatting, and UI/status updates happen after the click.
+
+The GATT callback and the tested Sony bridge path currently run on the Android
+main looper, so no worker-to-main scheduling hop is inserted in the hot path.
+Prepared Accessibility state is validated for safety before the click; raw
+`AccessibilityNodeInfo` objects are not treated as durable configuration and
+are refreshed/re-armed according to the existing service lifecycle.
+
+After the user has associated an OM8, the app declares `RECEIVE_BOOT_COMPLETED`
+and uses an exported-false boot receiver to request the existing `connectedDevice`
+foreground service. The receiver starts only when an association exists and the
+user has not selected Disconnect. This is Android-compliant recovery, not hidden
+background execution; Android may still defer delivery for a force-stopped app or
+device policy, and Bluetooth/GATT readiness remains independently verified.
 

@@ -27,6 +27,8 @@ public final class ControllerEvent {
     private final long sequence;
     private final long callbackEnteredAtNanos;
     private final long eventDetectedAtNanos;
+    private final long controlParseStartedAtNanos;
+    private final long controlParseCompletedAtNanos;
     private final boolean callbackOnMainLooper;
     private final long callbackThreadId;
     private final double axisValue;
@@ -50,11 +52,27 @@ public final class ControllerEvent {
                            boolean callbackOnMainLooper,
                            long callbackThreadId,
                            double axisValue) {
+        this(type, sourceDriverId, sequence, callbackEnteredAtNanos, eventDetectedAtNanos,
+                callbackOnMainLooper, callbackThreadId, axisValue, -1L, -1L);
+    }
+
+    public ControllerEvent(Type type,
+                           String sourceDriverId,
+                           long sequence,
+                           long callbackEnteredAtNanos,
+                           long eventDetectedAtNanos,
+                           boolean callbackOnMainLooper,
+                           long callbackThreadId,
+                           double axisValue,
+                           long controlParseStartedAtNanos,
+                           long controlParseCompletedAtNanos) {
         this.type = type;
         this.sourceDriverId = sourceDriverId == null ? "" : sourceDriverId;
         this.sequence = sequence;
         this.callbackEnteredAtNanos = callbackEnteredAtNanos;
         this.eventDetectedAtNanos = eventDetectedAtNanos;
+        this.controlParseStartedAtNanos = controlParseStartedAtNanos;
+        this.controlParseCompletedAtNanos = controlParseCompletedAtNanos;
         this.callbackOnMainLooper = callbackOnMainLooper;
         this.callbackThreadId = callbackThreadId;
         this.axisValue = axisValue;
@@ -78,6 +96,14 @@ public final class ControllerEvent {
 
     public long getEventDetectedAtNanos() {
         return eventDetectedAtNanos;
+    }
+
+    public long getControlParseStartedAtNanos() {
+        return controlParseStartedAtNanos;
+    }
+
+    public long getControlParseCompletedAtNanos() {
+        return controlParseCompletedAtNanos;
     }
 
     public boolean isCallbackOnMainLooper() {

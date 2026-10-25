@@ -9,6 +9,11 @@ public final class Om8DumlStatusParserSelfTest {
         require(!Om8DumlStatusParser.parse(normal).isRecordButtonDown(), "normal must be released");
         require(Om8DumlStatusParser.parse(pressed).isValid(), "pressed status must parse");
         require(Om8DumlStatusParser.parse(pressed).isRecordButtonDown(), "pressed must be down");
+        Om8DumlStatusParser.Result controlOnly = Om8DumlStatusParser.parseForControl(pressed);
+        require(controlOnly.isValid(), "control-only parser must parse pressed status");
+        require(controlOnly.isRecordButtonDown(), "control-only parser must preserve record state");
+        require(controlOnly.getFrame() == null,
+                "control-only parser must not retain a frame on the record hot path");
 
         byte[] verifiedControls = normal.clone();
         verifiedControls[11] = (byte) 0x7B;

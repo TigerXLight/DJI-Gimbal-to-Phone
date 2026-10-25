@@ -97,22 +97,47 @@ public final class BridgeApplication extends Application {
         return mappingEngine.getStore();
     }
 
+    /** Loads a mapping without depending on whichever profile is foreground right now. */
+    public MappingStore getMappingStore(String profileId) {
+        return mappingStore.load(profileId);
+    }
+
     public boolean setMapping(ControllerTrigger trigger, CameraAction action) {
-        MappingStore replacement = mappingEngine.getStore().withMapping(trigger, action);
-        if (!mappingStore.save(selectedProfileId(), replacement)) {
+        return setMapping(selectedProfileId(), trigger, action);
+    }
+
+    /** Saves a mapping against the camera profile being edited, not transient foreground state. */
+    public boolean setMapping(String profileId, ControllerTrigger trigger, CameraAction action) {
+        MappingStore current = mappingStore.load(profileId);
+        MappingStore replacement = current.withMapping(trigger, action);
+        if (!mappingStore.save(profileId, replacement)) {
             return false;
         }
-        mappingEngine.setStore(replacement);
+        if (isSelectedProfile(profileId)) {
+            mappingEngine.setStore(replacement);
+        }
         return true;
     }
 
     public boolean resetMappings() {
-        MappingStore replacement = mappingEngine.getStore().reset();
-        if (!mappingStore.reset(selectedProfileId())) {
+        return resetMappings(selectedProfileId());
+    }
+
+    /** Resets only the camera profile whose mapping page is being edited. */
+    public boolean resetMappings(String profileId) {
+        MappingStore replacement = mappingStore.load(profileId).reset();
+        if (!mappingStore.save(profileId, replacement)) {
             return false;
         }
-        mappingEngine.setStore(replacement);
+        if (isSelectedProfile(profileId)) {
+            mappingEngine.setStore(replacement);
+        }
         return true;
+    }
+
+    private boolean isSelectedProfile(String profileId) {
+        CameraProfile selected = controller.getSelectedProfile();
+        return selected != null && selected.getStableId().equals(profileId);
     }
 
     private String selectedProfileId() {

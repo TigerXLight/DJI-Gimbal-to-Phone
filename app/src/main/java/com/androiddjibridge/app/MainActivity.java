@@ -6,7 +6,9 @@ import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.companion.CompanionDeviceManager;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -30,6 +32,7 @@ import com.androiddjibridge.core.CameraApplicationDiscovery;
 import com.androiddjibridge.core.CameraProfileLearningSession;
 import com.androiddjibridge.core.CameraProfileOrigin;
 import com.androiddjibridge.core.ControllerTrigger;
+import com.androiddjibridge.core.MappingStore;
 import com.androiddjibridge.om8.Om8BleListenerService;
 import com.androiddjibridge.om8.Om8ConnectionPreferences;
 import com.androiddjibridge.om8.Om8ConnectionStatusStore;
@@ -52,6 +55,7 @@ public final class MainActivity extends Activity {
     private TextView diagnosticsState;
     private Button diagnosticsButton;
     private TextView gimbalDevice;
+    private LinearLayout deviceSection;
     private Button findGimbalButton;
     private Button disconnectButton;
     private Button forgetGimbalButton;
@@ -60,6 +64,17 @@ public final class MainActivity extends Activity {
     private LinearLayout cameraAppsContainer;
     private LinearLayout advancedContainer;
     private boolean advancedExpanded;
+    private boolean statusReceiverRegistered;
+
+    private final BroadcastReceiver connectionStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context context, Intent intent) {
+            if (intent != null
+                    && Om8ConnectionStatusStore.ACTION_STATUS_CHANGED.equals(intent.getAction())) {
+                refreshConsumerUi();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +90,29 @@ public final class MainActivity extends Activity {
         super.onResume();
         CompanionAssociationCoordinator.observePresence(this);
         refreshConsumerUi();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter filter = new IntentFilter(
+                Om8ConnectionStatusStore.ACTION_STATUS_CHANGED);
+        if (Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(connectionStatusReceiver, filter, RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(connectionStatusReceiver, filter);
+        }
+        statusReceiverRegistered = true;
+        refreshConsumerUi();
+    }
+
+    @Override
+    protected void onStop() {
+        if (statusReceiverRegistered) {
+            unregisterReceiver(connectionStatusReceiver);
+            statusReceiverRegistered = false;
+        }
+        super.onStop();
     }
 
     @Override
@@ -107,86 +145,104 @@ public final class MainActivity extends Activity {
         scroll.setFillViewport(true);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(32, 32, 32, 32);
+        root.setPadding(24, 24, 24, 24);
         scroll.addView(root);
 
         TextView title = new TextView(this);
         title.setText("DJI Gimbal Bridge");
-        title.setTextSize(26f);
+        title.setTextSize(24f);
         title.setTextColor(Color.BLACK);
         root.addView(title, matchWrap());
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Connect a DJI gimbal once, then use your configured camera app.");
-        subtitle.setPadding(0, 8, 0, 24);
+        subtitle.setText("Connect once. Use it with your camera apps.");
+        subtitle.setTextSize(14f);
+        subtitle.setTextColor(Color.DKGRAY);
+        subtitle.setPadding(0, 4, 0, 16);
         root.addView(subtitle, matchWrap());
 
+        deviceSection = new LinearLayout(this);
+        deviceSection.setOrientation(LinearLayout.VERTICAL);
+        deviceSection.setPadding(16, 12, 16, 12);
+        root.addView(deviceSection, matchWrap());
+
         TextView gimbalHeading = new TextView(this);
-        gimbalHeading.setText("DJI Gimbal");
-        gimbalHeading.setTextSize(19f);
+        gimbalHeading.setText("Device");
+        gimbalHeading.setTextSize(17f);
         gimbalHeading.setTextColor(Color.BLACK);
-        gimbalHeading.setPadding(0, 12, 0, 8);
-        root.addView(gimbalHeading, matchWrap());
+        gimbalHeading.setPadding(0, 0, 0, 4);
+        deviceSection.addView(gimbalHeading, matchWrap());
 
         gimbalDevice = new TextView(this);
-        gimbalDevice.setTextSize(17f);
-        root.addView(gimbalDevice, matchWrap());
+        gimbalDevice.setTextSize(15f);
+        deviceSection.addView(gimbalDevice, matchWrap());
         status = new TextView(this);
-        status.setPadding(0, 4, 0, 12);
-        root.addView(status, matchWrap());
+        status.setTextSize(13f);
+        status.setTextColor(Color.DKGRAY);
+        status.setPadding(0, 2, 0, 8);
+        deviceSection.addView(status, matchWrap());
 
         findGimbalButton = new Button(this);
         findGimbalButton.setText("Find DJI Gimbal");
+        styleCompactButton(findGimbalButton, false);
         findGimbalButton.setOnClickListener(view -> associateOm8());
-        root.addView(findGimbalButton, matchWrap());
+        deviceSection.addView(findGimbalButton, matchWrap());
 
+        LinearLayout deviceActions = new LinearLayout(this);
+        deviceActions.setOrientation(LinearLayout.HORIZONTAL);
         disconnectButton = new Button(this);
         disconnectButton.setText("Disconnect");
+        styleCompactButton(disconnectButton, true);
         disconnectButton.setOnClickListener(view -> stopBridge());
-        root.addView(disconnectButton, matchWrap());
-
+        deviceActions.addView(disconnectButton, weightedWrap(1f));
         forgetGimbalButton = new Button(this);
-        forgetGimbalButton.setText("Forget DJI Gimbal");
+        forgetGimbalButton.setText("Forget");
+        styleCompactButton(forgetGimbalButton, true);
         forgetGimbalButton.setOnClickListener(view -> forgetGimbal());
-        root.addView(forgetGimbalButton, matchWrap());
+        deviceActions.addView(forgetGimbalButton, weightedWrap(1f));
+        deviceSection.addView(deviceActions, matchWrap());
 
         accessibilityHint = new TextView(this);
         accessibilityHint.setText("Camera control needs one Android permission.");
-        accessibilityHint.setPadding(0, 20, 0, 4);
+        accessibilityHint.setTextSize(14f);
+        accessibilityHint.setTextColor(Color.DKGRAY);
+        accessibilityHint.setPadding(0, 16, 0, 4);
         root.addView(accessibilityHint, matchWrap());
         accessibilityButton = new Button(this);
         accessibilityButton.setText("Enable Camera Control");
+        styleCompactButton(accessibilityButton, false);
         accessibilityButton.setOnClickListener(view -> openAccessibilitySettings());
         root.addView(accessibilityButton, matchWrap());
 
         TextView cameraHeading = new TextView(this);
         cameraHeading.setText("Camera Apps");
-        cameraHeading.setTextSize(19f);
+        cameraHeading.setTextSize(17f);
         cameraHeading.setTextColor(Color.BLACK);
-        cameraHeading.setPadding(0, 24, 0, 8);
+        cameraHeading.setPadding(0, 20, 0, 6);
         root.addView(cameraHeading, matchWrap());
-        TextView cameraHelp = new TextView(this);
-        cameraHelp.setText("Each configured camera app has its own mapping preset. "
-                + "The foreground camera is selected automatically.");
-        root.addView(cameraHelp, matchWrap());
         cameraAppsContainer = new LinearLayout(this);
         cameraAppsContainer.setOrientation(LinearLayout.VERTICAL);
         root.addView(cameraAppsContainer, matchWrap());
 
         Button addCamera = new Button(this);
         addCamera.setText("+ Add camera app");
+        styleCompactButton(addCamera, true);
         addCamera.setOnClickListener(view -> chooseCameraApplication());
         root.addView(addCamera, matchWrap());
         Button learn = new Button(this);
         learn.setText("Learn a camera app");
+        styleCompactButton(learn, true);
         learn.setOnClickListener(view -> chooseLearningTarget());
         root.addView(learn, matchWrap());
         learningStatus = new TextView(this);
-        learningStatus.setPadding(0, 12, 0, 0);
+        learningStatus.setTextSize(13f);
+        learningStatus.setTextColor(Color.DKGRAY);
+        learningStatus.setPadding(0, 6, 0, 0);
         root.addView(learningStatus, matchWrap());
 
         Button advanced = new Button(this);
-        advanced.setText("Advanced / Diagnostics");
+        advanced.setText("Advanced & diagnostics   ›");
+        styleCompactButton(advanced, true);
         advanced.setOnClickListener(view -> {
             advancedExpanded = !advancedExpanded;
             advancedContainer.setVisibility(advancedExpanded ? ViewGroup.VISIBLE : ViewGroup.GONE);
@@ -198,8 +254,10 @@ public final class MainActivity extends Activity {
         root.addView(advancedContainer, matchWrap());
 
         diagnosticsState = new TextView(this);
+        diagnosticsState.setTextSize(13f);
         advancedContainer.addView(diagnosticsState, matchWrap());
         diagnosticsButton = new Button(this);
+        styleCompactButton(diagnosticsButton, true);
         diagnosticsButton.setOnClickListener(view -> {
             verboseDiagnostics = !verboseDiagnostics;
             setOm8Diagnostics(verboseDiagnostics);
@@ -207,18 +265,23 @@ public final class MainActivity extends Activity {
         advancedContainer.addView(diagnosticsButton, matchWrap());
         Button reconnect = new Button(this);
         reconnect.setText("Reconnect now");
+        styleCompactButton(reconnect, true);
         reconnect.setOnClickListener(view -> startBridge());
         advancedContainer.addView(reconnect, matchWrap());
         Button review = new Button(this);
         review.setText("Review / Confirm Learned Camera");
+        styleCompactButton(review, true);
         review.setOnClickListener(view -> reviewCandidate());
         advancedContainer.addView(review, matchWrap());
         Button test = new Button(this);
         test.setText("Test Selected Learned Profile");
+        styleCompactButton(test, true);
         test.setOnClickListener(view -> testSelectedProfile());
         advancedContainer.addView(test, matchWrap());
         TextView diagnosticNote = new TextView(this);
         diagnosticNote.setText("Protocol details and raw FFF4 logs are kept here for troubleshooting.");
+        diagnosticNote.setTextSize(13f);
+        diagnosticNote.setTextColor(Color.DKGRAY);
         advancedContainer.addView(diagnosticNote, matchWrap());
         updateDiagnosticsUi();
         return scroll;
@@ -412,6 +475,11 @@ public final class MainActivity extends Activity {
         gimbalDevice.setText(associated == null
                 ? "No DJI gimbal selected" : deviceName);
         status.setText(simpleConnectionState(snapshot, associated));
+        deviceSection.setBackgroundColor(snapshot.isConnected()
+                ? Color.rgb(220, 238, 255) : Color.TRANSPARENT);
+        gimbalDevice.setTextSize(snapshot.isConnected() ? 16f : 17f);
+        disconnectButton.setTextSize(13f);
+        forgetGimbalButton.setTextSize(13f);
         boolean hasAssociation = associated != null;
         findGimbalButton.setVisibility(hasAssociation ? ViewGroup.GONE : ViewGroup.VISIBLE);
         disconnectButton.setVisibility(hasAssociation ? ViewGroup.VISIBLE : ViewGroup.GONE);
@@ -467,24 +535,26 @@ public final class MainActivity extends Activity {
         }
         for (CameraProfile profile : profiles) {
             LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.VERTICAL);
-            row.setPadding(0, 8, 0, 8);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(0, 4, 0, 4);
             TextView description = new TextView(this);
-            boolean active = selected != null
-                    && selected.getStableId().equals(profile.getStableId());
-            description.setText(profile.getDisplayName() + "\n"
-                    + profile.getPackageName() + "\n"
-                    + profile.getOrigin().name() + " / "
-                    + profile.getValidationStatus().name()
-                    + (active ? "\nActive setup preset" : ""));
-            row.addView(description, matchWrap());
+            description.setText(profile.getDisplayName());
+            description.setTextSize(16f);
+            description.setTextColor(Color.BLACK);
+            description.setOnClickListener(view -> {
+                application.selectProfile(profile.getStableId());
+                showMappingEditor(profile);
+            });
+            row.addView(description, weightedWrap(1f));
             Button mappings = new Button(this);
             mappings.setText("Mappings");
+            styleCompactButton(mappings, true);
             mappings.setOnClickListener(view -> {
                 application.selectProfile(profile.getStableId());
                 showMappingEditor(profile);
             });
-            row.addView(mappings, matchWrap());
+            row.addView(mappings, wrapWrap());
             cameraAppsContainer.addView(row, matchWrap());
         }
     }
@@ -638,14 +708,32 @@ public final class MainActivity extends Activity {
     private void showMappingEditor() {
         BridgeApplication application = (BridgeApplication) getApplication();
         CameraProfile profile = application.getController().getSelectedProfile();
+        if (profile == null && !application.getProfiles().isEmpty()) {
+            profile = application.getProfiles().get(0);
+        }
+        showMappingEditor(profile);
+    }
+
+    private void showMappingEditor(CameraProfile profile) {
+        if (profile == null) {
+            updateStatus("No camera profile is configured.");
+            return;
+        }
+        BridgeApplication application = (BridgeApplication) getApplication();
+        application.selectProfile(profile.getStableId());
         LinearLayout editor = new LinearLayout(this);
         editor.setOrientation(LinearLayout.VERTICAL);
-        editor.setPadding(24, 8, 24, 8);
+        editor.setPadding(0, 0, 0, 0);
+        TextView mappingHint = new TextView(this);
+        mappingHint.setText("Choose a physical control and its camera action.");
+        mappingHint.setTextSize(13f);
+        mappingHint.setTextColor(Color.DKGRAY);
+        editor.addView(mappingHint, matchWrap());
         Spinner trigger = new Spinner(this);
         ControllerTrigger[] triggers = ControllerTrigger.values();
         String[] triggerNames = new String[triggers.length];
         for (int i = 0; i < triggers.length; i++) {
-            triggerNames[i] = triggers[i].name();
+            triggerNames[i] = triggerLabel(triggers[i]);
         }
         trigger.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, triggerNames));
@@ -653,25 +741,42 @@ public final class MainActivity extends Activity {
         CameraAction[] actions = CameraAction.values();
         String[] actionNames = new String[actions.length];
         for (int i = 0; i < actions.length; i++) {
-            actionNames[i] = actions[i].name();
+            actionNames[i] = actionLabel(actions[i]);
         }
         action.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, actionNames));
+        MappingStore current = application.getMappingStore(profile.getStableId());
+        trigger.setSelection(indexOf(triggers, ControllerTrigger.RECORD_PRESS), false);
+        action.setSelection(indexOf(actions,
+                current.actionFor(ControllerTrigger.RECORD_PRESS)), false);
+        trigger.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(
+                    AdapterView<?> parent, android.view.View view, int position, long id) {
+                if (position >= 0 && position < triggers.length) {
+                    action.setSelection(indexOf(actions,
+                            current.actionFor(triggers[position])), false);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
         editor.addView(trigger, matchWrap());
         editor.addView(action, matchWrap());
         new AlertDialog.Builder(this)
                 .setTitle("Mappings · " + (profile == null
                         ? "camera app" : profile.getDisplayName()))
-                .setMessage("The mapping selects a semantic camera action. It never contains\n"
-                        + "an intent, package, shell command, or Accessibility target.\n\n"
-                        + "Sony Video Pro: Record / Stop is hardware-tested. Side-wheel\n"
-                        + "rotation is unavailable, and lens switching remains disabled\n"
-                        + "until a safe semantic Accessibility action is evidenced.")
                 .setView(editor)
                 .setNegativeButton("Cancel", null)
                 .setNeutralButton("Reset", (dialog, which) -> {
-                    application.resetMappings();
-                    updateStatus("Mappings reset to safe defaults for the selected profile.");
+                    if (application.resetMappings(profile.getStableId())) {
+                        updateStatus("Mappings reset to safe defaults for "
+                                + profile.getDisplayName() + ".");
+                    } else {
+                        updateStatus("Mappings could not be reset.");
+                    }
                 })
                 .setPositiveButton("Save", (dialog, which) -> {
                     ControllerTrigger selectedTrigger = triggers[trigger.getSelectedItemPosition()];
@@ -684,7 +789,8 @@ public final class MainActivity extends Activity {
                                 + "semantic camera action.");
                         return;
                     }
-                    if (application.setMapping(selectedTrigger, selectedAction)) {
+                    if (application.setMapping(profile.getStableId(),
+                            selectedTrigger, selectedAction)) {
                         updateStatus("Mapping saved: " + selectedTrigger + " -> " + selectedAction);
                     } else {
                         updateStatus("Mapping was not saved.");
@@ -693,9 +799,51 @@ public final class MainActivity extends Activity {
                 .show();
     }
 
-    private void showMappingEditor(CameraProfile profile) {
-        ((BridgeApplication) getApplication()).selectProfile(profile.getStableId());
-        showMappingEditor();
+    private int indexOf(ControllerTrigger[] values, ControllerTrigger target) {
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] == target) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    private int indexOf(CameraAction[] values, CameraAction target) {
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] == target) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    private String triggerLabel(ControllerTrigger trigger) {
+        switch (trigger) {
+            case RECORD_PRESS: return "Record Press";
+            case RECORD_RELEASE: return "Record Release";
+            case SLIDER_PRESS: return "Side-wheel press";
+            case SLIDER_AXIS: return "Side-wheel rotation";
+            case MODE: return "M";
+            case JOYSTICK: return "Joystick";
+            case SLIDER_UP: return "Side-wheel up";
+            case SLIDER_DOWN: return "Side-wheel down";
+            default: return trigger.name();
+        }
+    }
+
+    private String actionLabel(CameraAction action) {
+        switch (action) {
+            case NONE: return "None";
+            case RECORD_TOGGLE: return "Record toggle";
+            case SWITCH_LENS: return "Change lens";
+            case ZOOM_AXIS: return "Zoom";
+            case CAPTURE_PHOTO: return "Capture photo";
+            case ZOOM_IN: return "Zoom in";
+            case ZOOM_OUT: return "Zoom out";
+            case FOCUS: return "Focus";
+            case FOCUS_AXIS: return "Focus axis";
+            default: return action.name();
+        }
     }
 
     private void setOm8Diagnostics(boolean enabled) {
@@ -902,6 +1050,31 @@ public final class MainActivity extends Activity {
 
     private String value(String value) {
         return value == null || value.isEmpty() ? "<none>" : value;
+    }
+
+    private void styleCompactButton(Button button, boolean secondary) {
+        button.setAllCaps(false);
+        button.setTextSize(secondary ? 14f : 15f);
+        button.setMinHeight(0);
+        button.setMinWidth(0);
+        button.setPadding(8, 4, 8, 4);
+        if (secondary) {
+            button.setBackgroundColor(Color.TRANSPARENT);
+            button.setTextColor(Color.rgb(25, 85, 150));
+        }
+    }
+
+    private ViewGroup.LayoutParams weightedWrap(float weight) {
+        return new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                weight);
+    }
+
+    private ViewGroup.LayoutParams wrapWrap() {
+        return new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
     private ViewGroup.LayoutParams matchWrap() {

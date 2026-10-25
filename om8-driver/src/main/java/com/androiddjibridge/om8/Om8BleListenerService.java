@@ -959,7 +959,10 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             return;
         }
         long parseStart = SystemClock.elapsedRealtimeNanos();
-        Om8DumlStatusParser.Result parsed = Om8DumlStatusParser.parse(value);
+        boolean diagnostics = verboseDiagnostics;
+        Om8DumlStatusParser.Result parsed = diagnostics
+                ? Om8DumlStatusParser.parse(value)
+                : Om8DumlStatusParser.parseForControl(value);
         long parseEnd = SystemClock.elapsedRealtimeNanos();
         if (!parsed.isValid()) {
             if (Om8LoggingPolicy.shouldLogParserRejection(
@@ -970,7 +973,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             return;
         }
 
-        if (verboseDiagnostics) {
+        if (diagnostics) {
             log(Om8RawDiagnosticFormatter.parsed(parsed));
         }
 
@@ -988,7 +991,10 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
                     callbackEnter,
                     edgeDetectEnd,
                     callbackOnMainLooper,
-                    callbackThreadId);
+                    callbackThreadId,
+                    0.0d,
+                    parseStart,
+                    parseEnd);
             long dispatchStart = SystemClock.elapsedRealtimeNanos();
             boolean accepted = eventSink != null
                     ? eventSink.onControllerEvent(event)
@@ -1015,7 +1021,10 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
                     callbackEnter,
                     edgeDetectEnd,
                     callbackOnMainLooper,
-                    callbackThreadId);
+                    callbackThreadId,
+                    0.0d,
+                    parseStart,
+                    parseEnd);
             ControllerEventSink sink = eventSink;
             if (sink != null) {
                 sink.onControllerEvent(event);

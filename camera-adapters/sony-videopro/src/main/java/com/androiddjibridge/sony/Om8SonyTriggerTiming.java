@@ -85,5 +85,7 @@ public final class Om8SonyTriggerTiming {
     public long tNodeValidationEndNanos = -1L;
     public long tPerformActionStartNanos = -1L;
     public long tPerformActionEndNanos = -1L;
+    /** T3: the prepared safe action target has passed its pre-click checks. */
+    public long tPreparedActionReadyNanos = -1L;
     public long tSonyVerifiedStateNanos = -1L;
 }

@@ -82,14 +82,10 @@ Run from the repository root before creating a public archive:
 
 ```powershell
 git ls-files
-rg -n -i -S 'C:\\Users|\.codex-remote-attachments|PROJECT_MEMORY|FROZEN_REFERENCE' (git ls-files)
 git status --short --ignored
 git log --all --format='%H %an <%ae> %s'
 ```
 
-The audit document intentionally contains generic search-pattern terms. It does
-not contain the observed hardware address or a concrete private filesystem
-path. The command should still be reviewed rather than blindly treated as a
-zero-match rule: research/freeze terms may be appropriate in sanitized
-historical documentation, while personal filesystem paths and device
-identifiers are not.
+Use a private, uncommitted denylist for the local pre-publication scan. Do not
+place the actual device address, personal filesystem paths, or personal
+identifiers in the public repository merely as search-pattern examples.

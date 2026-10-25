@@ -37,11 +37,11 @@ manual upload or release archive.
 
 ## History review
 
-All reachable commits currently use the author identity
-`TigerXLight <fahad.malik11@outlook.com>`. This is not a source secret, but it
-is personal metadata that should not be published without the owner's
-decision. The history also contains earlier versions of the now-corrected
-private documentation paths. No history rewrite was performed.
+All reachable commits currently use the author identity `TigerXLight` with a
+personal email address. This is not a source secret, but it is personal
+metadata that should not be published without the owner's decision. The history
+also contains earlier versions of the now-corrected private documentation
+paths. No history rewrite was performed.
 
 Before public GitHub publication, choose one of these owner-approved options:
 

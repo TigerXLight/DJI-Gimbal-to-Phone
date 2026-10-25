@@ -60,3 +60,12 @@ hardware-tested Sony Video Pro action. Side-wheel **rotation** is explicitly
 `UNSUPPORTED_NO_SAFE_PATH` because no safe passive or Mimo-derived encoding was
 established.
 
+## Consumer-preview status
+
+The installed app name is **DJI Gimbal Bridge**. The consumer-preview UI
+supports remembered `OM8-*` association, automatic/presence-assisted reconnect,
+per-camera profile rows, per-profile mappings, and a collapsed diagnostic area.
+These UI changes are not themselves a new hardware validation claim. The
+current product version remains `0.2.0-consumer-preview` until the complete
+acceptance sequence in `docs/TESTING.md` is run on the Xperia 1 IV + OM8 setup.
+

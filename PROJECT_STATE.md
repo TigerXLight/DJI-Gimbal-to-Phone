@@ -209,3 +209,23 @@ UNSUPPORTED_NO_SAFE_PATH absent a stable ordinary-app contract. Photography Pro'
 ordinary-app ACTION_CAMERA_BUTTON probe is TESTED_NEGATIVE. See
 docs/UPSTREAM_INTEGRATION.md.
 
+## Consumer productization preview
+
+The installed application name is now **DJI Gimbal Bridge**. The main screen
+offers a user-facing **Find DJI Gimbal** flow, remembered connection status,
+separate **Disconnect** and **Forget DJI Gimbal** actions, per-camera profile
+rows with **Mappings**, and a collapsed **Advanced / Diagnostics** section.
+Raw protocol terms are not shown on the ordinary setup surface.
+
+Foreground package changes from the existing Accessibility service select the
+matching configured camera profile and its app-private mapping automatically.
+Unknown/unconfigured packages clear the selected adapter and fail closed. The
+existing Sony Video Pro specialized adapter remains the only adapter capable of
+the hardware-tested Record action.
+
+The current productization build is `0.2.0-consumer-preview`, versionCode `2`.
+Automated tests/build are passing, but the full product-level Xperia 1 IV + OM8
+acceptance matrix has not yet been rerun on this UI/lifecycle build. The release
+gate also still requires an explicit project licence and public-file
+sanitization; no 1.0 or public GitHub claim is made yet.
+

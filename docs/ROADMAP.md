@@ -99,3 +99,21 @@ Samsung stock control remains fail-closed, and Photography Pro's ordinary-app
 camera-button broadcast is tested negative. Future work is hardware-backed
 adapter-by-adapter validation, not a universal compatibility claim.
 
+## Consumer productization — IN PROGRESS
+
+- User-facing name is **DJI Gimbal Bridge**.
+- Main screen is organized around **Find DJI Gimbal**, remembered connection
+  status, camera-app rows, per-app **Mappings**, and a collapsed **Advanced /
+  Diagnostics** area.
+- Companion association and the existing connected-device foreground service
+  remain the automatic connection path; **Disconnect** and **Forget DJI
+  Gimbal** are distinct actions.
+- Foreground camera package changes select the matching configured profile and
+  mapping automatically; unknown packages fail closed.
+- The current build is `0.2.0-consumer-preview`, not 1.0. The Xperia/OM8
+  product acceptance sequence, timing summary, release licence selection, and
+  public-file sanitization are still required before a public release claim.
+- Sony Video Pro remains the only hardware-tested camera application. Side-wheel
+  rotation remains `UNSUPPORTED_NO_SAFE_PATH`, while side-wheel press is decoded
+  but not routed to an unsafe lens-switch fallback.
+

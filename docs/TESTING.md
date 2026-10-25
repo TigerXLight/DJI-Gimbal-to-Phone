@@ -54,7 +54,11 @@ adb shell am start -n com.androiddjibridge/com.androiddjibridge.app.MainActivity
 adb logcat -v time -s Om8BleListenerService:I VideoProKeyAccessibilityService:I Om8DiagnosticReceiver:I *:S
 ~~~
 
-After the app opens, use Start Bridge in the UI for the complete bridge startup. This initializes the normal selected-camera path and starts the OM8 driver.
+After the app opens, use **Find DJI Gimbal** once for the normal setup path.
+The remembered association/presence path starts the connected-device service
+where Android permits. Use **Reconnect now** in **Advanced / Diagnostics** only
+for manual recovery; this initializes the existing OM8 driver without adding a
+second GATT owner.
 
 The optional debug command below starts the OM8 listener/driver only:
 
@@ -310,4 +314,49 @@ for this DJI closeout.
    `OFF`. Normal mode suppresses routine heartbeat and expected parser-rejection
    spam while retaining connection, readiness, release/press, and unusual error
    messages.
+
+## Consumer-preview acceptance checklist
+
+The productization build is `0.2.0-consumer-preview` (versionCode `2`). The
+following product-level checks are still required before promoting it to 1.0:
+
+1. With no saved association, open **DJI Gimbal Bridge**, press **Find DJI
+   Gimbal**, select the nearby `OM8-*` device, and confirm the association is
+   retained.
+2. Enable **Camera Control** once, leave the bridge UI, turn the remembered OM8
+   off and on, and confirm the connected-device service reaches Gimbal READY
+   without a routine Start Bridge press.
+3. Open Sony Video Pro directly and verify one physical Record press starts REC,
+   one later press stops at Stby, and releases do not create duplicate actions.
+4. Confirm the foreground Sony package selects the Sony preset automatically;
+   unknown/unconfigured packages must clear the camera adapter and fail closed.
+5. Exercise **Disconnect** and **Forget DJI Gimbal** separately. Disconnect must
+   suppress immediate auto-reconnect without erasing the remembered association;
+   Forget must clear it.
+6. Test OM8 power-cycle, Bluetooth off/on, process/service recreation, and phone
+   reboot without clearing app data. Record exactly whether Android requires one
+   post-reboot app launch on the tested OS.
+7. Inspect Android Bluetooth Settings and Quick Settings while the bridge owns
+   the GATT connection. Record whether the OM8 is surfaced as connected/bonded;
+   do not force bonding. The app notification must say **DJI Gimbal Bridge** and
+   show a useful OM8 connection status if system UI is silent.
+8. Run five bounded START/STOP pairs and retain the timing lines. Report
+   notification callback -> edge detection, callback -> ACTION_CLICK, click ->
+   authoritative REC/Stby verification, and total callback -> verification for
+   START and STOP separately, with min/median/max. These are application-side
+   timings, not physical-button-to-media-start latency.
+
+The final acceptance result must be labelled **PASS**, **FAIL**, or
+**NOT RUN**. A passing unit suite and APK build do not substitute for this
+product-level device run. The unresolved OM8 side-wheel rotation does not block
+1.0 if it remains visibly unavailable and is not advertised as supported.
+
+## Public-release gate
+
+Before any GitHub publication, audit tracked files for personal paths, device
+addresses, raw bugreports/HCI captures, credentials, private project-memory
+material, and build/IDE caches. The production repository must contain no
+Insta360 implementation or private evidence archive. The project licence is
+still intentionally undecided in this preview; do not publish until a licence
+is explicitly selected and added as `LICENSE`.
 

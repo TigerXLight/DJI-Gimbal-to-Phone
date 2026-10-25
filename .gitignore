@@ -5,3 +5,7 @@ local.properties
 .idea/
 *.iml
 captures/
+HCI_Captures/
+PC_OM8_Captures/
+om8_pc_*.py
+om8_readonly_probe.py

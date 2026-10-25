@@ -1,6 +1,8 @@
-# Android DJI OM Bridge
+# DJI Gimbal Bridge
 
-Android DJI OM Bridge is an unofficial Phase 1 foundation for receiving a supported DJI OM controller event over direct BLE and routing it to a selected camera adapter.
+DJI Gimbal Bridge is an unofficial Android companion for a remembered DJI OM
+gimbal. It maintains the direct BLE notification connection and routes verified
+physical controls to explicitly configured camera-app adapters.
 
 ## Disclaimer
 
@@ -8,7 +10,8 @@ Unofficial project.
 Not affiliated with or endorsed by DJI.
 DJI and Osmo are trademarks of their respective owner.
 
-License: not yet selected. Repository should not be publicly released until licensing is decided.
+The project is not affiliated with or endorsed by DJI. A final public release
+still requires the repository owner to select and add a project licence.
 
 ## Phase 1 status
 
@@ -57,6 +60,44 @@ Representative measured samples:
 
 The 1.522708 ms STOP value is one observed sample/outlier, not a claimed permanent regression.
 
+## Consumer setup flow
+
+The current productization build is `0.2.0-consumer-preview` and is not yet a
+1.0 acceptance release. The intended first-use flow is:
+
+1. Install **DJI Gimbal Bridge**.
+2. Grant Nearby Devices and notification permissions if Android requests them.
+3. Enable the one Android Accessibility service required for camera control.
+4. Tap **Find DJI Gimbal** and select the nearby `OM8-*` device once.
+5. Configure each camera app's mappings from its own **Mappings** button.
+
+After setup, turn on the remembered gimbal and open the configured camera app.
+The bridge uses Android's companion/presence wake-up where available and its
+own connected-device foreground service for the real GATT/FFF4 connection.
+DJI Mimo, a PC, ADB, Android Bluetooth Settings pairing, and a routine
+**Start Bridge** action are not normal-use requirements. If an Android version
+does not provide the companion wake-up path, **Reconnect now** remains under
+**Advanced / Diagnostics** as a recovery control.
+
+The Sony Video Pro preset is the only camera application with hardware-tested
+control. Its Record button maps to Record / Stop. Side-wheel press is decoded
+but lens switching is not enabled because no safe Sony semantic Accessibility
+action has been evidenced. Side-wheel rotation is displayed as Zoom but remains
+`UNSUPPORTED_NO_SAFE_PATH`; the bridge does not guess telemetry or replay FFF5.
+
+The UI lists built-in and learned camera profiles separately. Learned profiles
+are unverified until the user deliberately tests them and are never treated as
+universal camera support. Unknown applications fail closed unless a user creates
+and confirms a safe Accessibility profile.
+
+## Release status
+
+This branch is a consumer-preview productization build. Automated tests pass,
+but final device acceptance has not yet been rerun for this UI/lifecycle build.
+Do not label or publish it as `1.0.0` until the Xperia 1 IV + OM8 acceptance
+sequence, repeated Record timing, Bluetooth/system-status observations, and
+privacy/licence audit in `docs/TESTING.md` are complete.
+
 The Android release/version of the test handset was not recorded in the available Phase 1 source/frozen evidence. The project build target SDK is not a claim about the handset's Android release.
 
 ## What it does
@@ -99,9 +140,17 @@ The debug build also has protected, explicit diagnostic receivers. See docs/TEST
 
 ## Startup modes
 
-Use the app UI's **Start Bridge** control for normal operation. It starts the complete bridge with the selected Sony Video Pro adapter available.
+For normal setup, use **Find DJI Gimbal** once and then leave the bridge UI.
+The remembered association/presence path starts the existing connected-device
+foreground service where Android permits. The service performs the real scan,
+GATT connection, FFF0/FFF4 discovery, CCCD subscription, and readiness checks.
+Use **Reconnect now** under **Advanced / Diagnostics** only for recovery.
 
-The debug broadcast com.androiddjibridge.OM8_LISTENER_START is an OM8-driver/listener diagnostic control. It can start scanning and reach OM8 LISTENER READY, but that is only Gimbal READY; it does not by itself guarantee that the complete camera bridge is initialized. A driver-only start may therefore log BRIDGE_EVENT_REJECTED reason=no-selected-camera-adapter-or-camera-service. Use the UI path for the complete bridge until startup ownership is intentionally redesigned.
+The debug broadcast `com.androiddjibridge.OM8_LISTENER_START` is an
+OM8-driver/listener diagnostic control. It can reach OM8 LISTENER READY, but
+that means only Gimbal READY; it does not guarantee that a camera adapter is
+selected or that the complete camera bridge is ready. It may therefore log
+`BRIDGE_EVENT_REJECTED reason=no-selected-camera-adapter-or-camera-service`.
 
 ## Accessibility requirement
 

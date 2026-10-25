@@ -1,6 +1,7 @@
 package com.androiddjibridge.app;
 
 import android.app.Application;
+import android.content.SharedPreferences;
 
 import com.androiddjibridge.core.BridgeController;
 import com.androiddjibridge.core.BridgeRuntime;
@@ -14,6 +15,7 @@ import com.androiddjibridge.core.MappingStore;
 import com.androiddjibridge.sony.GenericAccessibilityCameraAdapter;
 import com.androiddjibridge.sony.SonyVideoProCameraAdapter;
 import com.androiddjibridge.sony.SonyVideoProProfile;
+import com.androiddjibridge.om8.Om8ConnectionPreferences;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +25,8 @@ import java.util.Set;
 
 /** Installs the selected adapter without coupling the OM8 driver to Sony. */
 public final class BridgeApplication extends Application {
+    private static final String PREFERENCES = "bridge_consumer_settings";
+    private static final String SELECTED_PROFILE = "selected_profile";
     private BridgeController controller;
     private LearnedProfileStore learnedProfileStore;
     private AndroidMappingStore mappingStore;
@@ -37,14 +41,22 @@ public final class BridgeApplication extends Application {
         Set<String> builtInPackages = Collections.singleton(sonyProfile.getPackageName());
         learnedProfileStore = new LearnedProfileStore(this, builtInIds, builtInPackages);
         mappingStore = new AndroidMappingStore(this);
-        mappingEngine = new MappingEngine(mappingStore.load(sonyProfile.getStableId()));
         CameraProfileRegistry registry = buildRegistry();
+        CameraProfile initialProfile = registry.findByStableId(
+                        selectedProfileIdFromPreferences())
+                .orElse(registry.getDefaultProfile().orElse(sonyProfile));
+        mappingEngine = new MappingEngine(mappingStore.load(initialProfile.getStableId()));
         controller = new BridgeController(
-                registry, sonyProfile, mappingEngine, new SonyVideoProCameraAdapter());
+                registry, initialProfile, mappingEngine, adapterFor(initialProfile));
         BridgeRuntime.install(controller);
+        BridgeRuntime.installForegroundPackageListener(this::selectProfileForForegroundPackage);
         // Presence observation is a system-managed wake-up path. It does not
         // itself own GATT or imply that the camera adapter is ready.
         CompanionAssociationCoordinator.observePresence(this);
+        if (new CompanionAssociationStore(this).load() != null
+                && !Om8ConnectionPreferences.isManualDisconnect(this)) {
+            AutoConnectServiceStarter.start(this, "application-created");
+        }
     }
 
     public BridgeController getController() {
@@ -58,17 +70,19 @@ public final class BridgeApplication extends Application {
     public boolean selectProfile(String stableId) {
         CameraProfile profile = controller.getProfileRegistry()
                 .findByStableId(stableId).orElse(null);
-        if (profile == null || !controller.selectProfile(stableId)) {
-            return false;
+        return profile != null && selectProfileInternal(profile, true);
+    }
+
+    /** Selects the configured preset for the foreground camera, or fails closed. */
+    public void selectProfileForForegroundPackage(String packageName) {
+        CameraProfile profile = controller.getProfileRegistry()
+                .findByPackageName(packageName).orElse(null);
+        if (profile == null) {
+            controller.clearSelectedProfile();
+            controller.setSelectedAdapter(null);
+            return;
         }
-        mappingEngine.setStore(mappingStore.load(profile.getStableId()));
-        if (sonyProfile.getStableId().equals(profile.getStableId())
-                && profile.getOrigin() == CameraProfileOrigin.BUILTIN) {
-            controller.setSelectedAdapter(new SonyVideoProCameraAdapter());
-        } else {
-            controller.setSelectedAdapter(new GenericAccessibilityCameraAdapter(profile));
-        }
-        return true;
+        selectProfileInternal(profile, false);
     }
 
     public boolean saveLearnedProfile(CameraProfile profile) {
@@ -104,6 +118,34 @@ public final class BridgeApplication extends Application {
     private String selectedProfileId() {
         CameraProfile profile = controller.getSelectedProfile();
         return profile == null ? "default" : profile.getStableId();
+    }
+
+    private boolean selectProfileInternal(CameraProfile profile, boolean persist) {
+        if (profile == null || !controller.selectProfile(profile.getStableId())) {
+            return false;
+        }
+        mappingEngine.setStore(mappingStore.load(profile.getStableId()));
+        controller.setSelectedAdapter(adapterFor(profile));
+        if (persist) {
+            getSharedPreferences(PREFERENCES, MODE_PRIVATE).edit()
+                    .putString(SELECTED_PROFILE, profile.getStableId())
+                    .apply();
+        }
+        return true;
+    }
+
+    private com.androiddjibridge.core.CameraAdapter adapterFor(CameraProfile profile) {
+        if (profile != null
+                && sonyProfile.getStableId().equals(profile.getStableId())
+                && profile.getOrigin() == CameraProfileOrigin.BUILTIN) {
+            return new SonyVideoProCameraAdapter();
+        }
+        return profile == null ? null : new GenericAccessibilityCameraAdapter(profile);
+    }
+
+    private String selectedProfileIdFromPreferences() {
+        SharedPreferences preferences = getSharedPreferences(PREFERENCES, MODE_PRIVATE);
+        return preferences.getString(SELECTED_PROFILE, sonyProfile.getStableId());
     }
 
     private CameraProfileRegistry buildRegistry() {

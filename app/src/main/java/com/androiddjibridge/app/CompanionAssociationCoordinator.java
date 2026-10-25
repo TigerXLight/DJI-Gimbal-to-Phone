@@ -15,6 +15,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.androiddjibridge.core.AssociatedDevice;
+import com.androiddjibridge.om8.Om8ConnectionPreferences;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -86,6 +87,7 @@ public final class CompanionAssociationCoordinator {
                             : associationInfo.getDisplayName().toString();
                     saveObservation(activity, name, addressOf(associationInfo),
                             associationInfo.getId());
+                    Om8ConnectionPreferences.setManualDisconnect(activity, false);
                     observePresence(activity);
                     AutoConnectServiceStarter.start(activity, "association-created-callback");
                 }
@@ -120,6 +122,7 @@ public final class CompanionAssociationCoordinator {
             return false;
         }
         saveObservation(context, name, address, AssociatedDevice.NO_ASSOCIATION_ID);
+        Om8ConnectionPreferences.setManualDisconnect(context, false);
         observePresence(context);
         AutoConnectServiceStarter.start(context, "association-created");
         return true;

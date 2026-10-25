@@ -353,6 +353,8 @@ public class VideoProKeyAccessibilityService extends AccessibilityService {
             if (!previousEffectivePackage.equals(effectiveForegroundPackage)) {
                 log("foreground package updated=" + effectiveForegroundPackage
                         + " from eventPackage=" + lastAccessibilityEventPackage);
+                com.androiddjibridge.core.BridgeRuntime.foregroundPackageChanged(
+                        effectiveForegroundPackage);
             }
             boolean videoProActive = VIDEO_PRO_PACKAGE.equals(effectiveForegroundPackage);
             int observedSonyWindowId = applicationWindow.windowId;

@@ -411,12 +411,20 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             return START_NOT_STICKY;
         }
         if (intent != null && ACTION_START_LISTENER.equals(intent.getAction())) {
+            Om8ConnectionPreferences.setManualDisconnect(this, false);
             beginListener();
         } else if (intent != null && ACTION_AUTO_START_LISTENER.equals(intent.getAction())) {
+            if (Om8ConnectionPreferences.isManualDisconnect(this)) {
+                log("OM8 automatic listener start suppressed by manual disconnect");
+                updateNotification("OM8 disconnected by user");
+                stopSelf(startId);
+                return START_NOT_STICKY;
+            }
             log("OM8 automatic listener start reason="
                     + intent.getStringExtra(EXTRA_START_REASON));
             beginListenerIfNeeded();
         } else if (intent != null && ACTION_STOP_LISTENER.equals(intent.getAction())) {
+            Om8ConnectionPreferences.setManualDisconnect(this, true);
             log("OM8 listener stop requested");
             stopListener("explicit-stop");
             stopSelf(startId);
@@ -913,6 +921,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             return;
         }
         listenerState = state;
+        Om8ConnectionStatusStore.publish(this, state.name(), lastSeenName, lastSeenAddress);
         publishGimbalState(state);
         log("OM8_STATE " + state.name());
     }
@@ -1090,7 +1099,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
         Notification.Builder builder = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(this, CHANNEL_ID)
                 : new Notification.Builder(this);
-        return builder.setContentTitle("OM Bridge for Android")
+        return builder.setContentTitle("DJI Gimbal Bridge")
                 .setContentText(text)
                 .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
                 .setContentIntent(pending)

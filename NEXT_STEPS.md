@@ -62,3 +62,11 @@ tapping, gimbal movement, or a public release from this baseline.
     both USB data/protocol behavior and Bluetooth/wireless behavior from the
     beginning.
 
+21. Complete the consumer-preview acceptance checklist in `docs/TESTING.md` on
+    the Xperia 1 IV + OM8. Record the device/system Bluetooth presentation,
+    process/reboot behavior, and five bounded Sony START/STOP timing pairs.
+22. If acceptance passes, choose and add the project's explicit open-source
+    licence, audit tracked files for private evidence/paths/identifiers, and
+    prepare the public GitHub release. Until then keep version
+    `0.2.0-consumer-preview` and do not claim 1.0.
+

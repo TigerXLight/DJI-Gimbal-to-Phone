@@ -214,3 +214,39 @@ source-evidenced but hardware-unverified, Samsung has no safe universal stock
 camera contract in the evidence set, and Photography Pro's ordinary-app camera
 button broadcast is tested negative. See `docs/UPSTREAM_INTEGRATION.md`.
 
+## Consumer product lifecycle
+
+The end-user flow is deliberately separate from the protocol-development
+surface:
+
+~~~text
+Find DJI Gimbal
+    -> user-approved CompanionDeviceManager association
+    -> presence wake-up where Android permits
+    -> connected-device foreground service
+    -> existing OM8 scan/GATT/FFF4 owner
+    -> Gimbal READY
+
+foreground camera package
+    -> profile registry lookup
+    -> per-camera MappingStore
+    -> specialized or conservative CameraAdapter
+~~~
+
+The association remembers the user-approved device concept, not a production
+hardcoded MAC address. The service still performs dynamic `OM8-*` discovery and
+proves FFF0/FFF4/CCCD readiness. **Disconnect** is an explicit user choice that
+suppresses immediate recovery; **Forget DJI Gimbal** clears the association.
+
+`VideoProKeyAccessibilityService` reports effective foreground package changes
+to `BridgeRuntime` outside the Record callback. `BridgeApplication` selects the
+matching configured profile and its mapping in memory. Unknown or unconfigured
+foreground packages clear the adapter, so an OM8 event cannot control whichever
+application happens to be visible.
+
+The ordinary UI contains only connection setup, camera-app presets, and mapping
+entry points. Raw FFF4 diagnostics, reconnect recovery, and learned-profile test
+controls are inside the collapsed **Advanced / Diagnostics** section. This UI
+organization does not change the proven Record rising-edge, Sony prepared-node,
+safety-snapshot, verification, or re-arm path.
+

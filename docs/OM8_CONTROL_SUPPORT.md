@@ -11,7 +11,7 @@ permission to click a camera control.
 | M button | FFF4 `04/57`, payload byte 4 observed as `0x03` | `HARDWARE_TESTED` for passive field decoding | No default camera mapping |
 | Rear trigger | FFF4 `04/57`, payload byte 4 observed as `0x11`, `0x21`, `0x61`, `0x71` | `HARDWARE_TESTED` for observed raw states | Exact `0x61`/`0x71` semantics remain intentionally unresolved; no default camera mapping |
 | Switch | FFF4 `04/57`, payload byte 5 `0x20` single / `0x40` double | `HARDWARE_TESTED` for passive field decoding | No default camera mapping |
-| Side-wheel press | FFF4 `04/57`, payload byte 6 bit `0x01` | `HARDWARE_TESTED` for passive field decoding | No default camera mapping |
+| Side-wheel press | FFF4 `04/57`, payload byte 6 bit `0x01` | `HARDWARE_TESTED` for passive field decoding | Reserved intended Sony mapping: `SWITCH_LENS`; not enabled because no safe/evidenced Sony semantic lens-switch action is currently implemented |
 | Side-wheel rotation | No reproducible field in correctly timed passive FFF4, FFF3, custom notify, or device-matched Mimo HCI/ATT evidence | `UNSUPPORTED_NO_SAFE_PATH` | Not decoded; no guessed telemetry or FFF5 replay |
 
 The parser exposes the verified raw fields for diagnostics and future
@@ -33,6 +33,13 @@ source remains unresolved. The completed evidence includes:
 
 No safe FFF5 activation/replay sequence was established. The bridge therefore
 does not send application-data FFF5 writes.
+
+For the Sony Video Pro use case, the decoded side-wheel press is reserved for
+future camera/lens switching, but it is not currently routed to Sony. The
+specialized Sony adapter intentionally advertises and executes only
+`RECORD_TOGGLE`; no safe Sony Accessibility node/action for lens switching has
+been evidenced. Side-wheel rotation remains reserved for Sony zoom and is
+`UNSUPPORTED_NO_SAFE_PATH`.
 
 ## Support taxonomy
 

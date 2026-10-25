@@ -36,8 +36,10 @@ The Java parser exposes these values without assigning unsupported precision to
 the trigger states. Joystick normalization must use a deadzone and state
 transitions, not exact observed values. These additional fields are decoded
 for evidence and future mapping work; only the Record rising edge is currently
-routed to the Sony camera action. Side-wheel rotation has no verified passive
-encoding and is not decoded.
+routed to the Sony camera action. Side-wheel press is reserved for a future
+`SWITCH_LENS` mapping but is not enabled without a safe Sony semantic action.
+Side-wheel rotation is reserved for Sony zoom, has no verified passive encoding,
+and is not decoded.
 
 ## Connection lifecycle
 

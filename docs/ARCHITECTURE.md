@@ -108,8 +108,11 @@ side-wheel-press, and Record fields. The driver still routes only the Record
 rising/falling edge into the active camera mapping; the other decoded fields
 remain observational until their state-transition semantics and safe camera
 mappings are independently validated. The Sony adapter handles only
-`RECORD_TOGGLE`; release never toggles Sony. Side-wheel rotation remains
-unresolved and is not represented by a guessed field.
+`RECORD_TOGGLE`; release never toggles Sony. `CameraAction.SWITCH_LENS` is the
+reserved semantic destination for the decoded side-wheel press, but no safe
+Sony Accessibility node/action has been evidenced or implemented, so it is not
+enabled. Side-wheel rotation is reserved for Sony zoom, remains unresolved,
+and is not represented by a guessed field.
 
 ## Phase 2B Learn Camera boundary
 

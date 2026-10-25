@@ -239,6 +239,15 @@ address only for Android's legacy presence API. The address is not hard-coded or
 trusted as permanent identity. No DJI Mimo process control, FFF5 command write,
 movement command, or new camera adapter is added.
 
+### OM8 raw-control capture
+
+The main screen is vertically scrollable. Under **Advanced / Diagnostics**, the
+**OM8 Raw Diagnostics** control shows its persisted `ON`/`OFF` state and toggles
+complete inbound FFF4 logging without ADB. Raw mode is intentionally verbose and
+records every received byte sequence plus parsed metadata where available. Normal
+mode suppresses routine idle heartbeat/parser-rejection traffic. See
+`docs/TESTING.md` for the controlled capture procedure.
+
 ### Phase 3A hardware validation — PASS
 
 The two-press Xperia 1 IV + DJI OM8 + Sony Video Pro regression passed. START

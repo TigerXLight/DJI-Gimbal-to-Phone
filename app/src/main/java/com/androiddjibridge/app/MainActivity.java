@@ -17,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -28,6 +29,7 @@ import com.androiddjibridge.core.CameraProfileLearningSession;
 import com.androiddjibridge.core.CameraProfileOrigin;
 import com.androiddjibridge.core.ControllerTrigger;
 import com.androiddjibridge.om8.Om8BleListenerService;
+import com.androiddjibridge.om8.Om8DiagnosticsPreferences;
 import com.androiddjibridge.sony.VideoProKeyAccessibilityService;
 
 import java.util.ArrayList;
@@ -43,10 +45,13 @@ public final class MainActivity extends Activity {
     private ArrayAdapter<String> profileChoices;
     private final List<CameraProfile> displayedProfiles = new ArrayList<>();
     private boolean verboseDiagnostics;
+    private TextView diagnosticsState;
+    private Button diagnosticsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        verboseDiagnostics = Om8DiagnosticsPreferences.isEnabled(this);
         setContentView(buildView());
         requestNearbyDevicesIfNeeded();
         refreshProfileList();
@@ -59,6 +64,8 @@ public final class MainActivity extends Activity {
         if (profileSpinner != null) {
             refreshProfileList();
             refreshLearningStatus();
+            verboseDiagnostics = Om8DiagnosticsPreferences.isEnabled(this);
+            updateDiagnosticsUi();
             updateStatus("Automatic OM8: " + CompanionAssociationCoordinator.status(this));
         }
     }
@@ -87,10 +94,13 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private LinearLayout buildView() {
+    private ScrollView buildView() {
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(32, 32, 32, 32);
+        scroll.addView(root);
 
         TextView title = new TextView(this);
         title.setText("OM Bridge for Android\nPhase 3B");
@@ -172,15 +182,22 @@ public final class MainActivity extends Activity {
         mappings.setOnClickListener(view -> showMappingEditor());
         root.addView(mappings, matchWrap());
 
-        Button diagnostics = new Button(this);
-        diagnostics.setText("Enable OM8 Raw Diagnostics");
-        diagnostics.setOnClickListener(view -> {
+        TextView diagnosticsHeading = new TextView(this);
+        diagnosticsHeading.setText("Advanced / Diagnostics");
+        diagnosticsHeading.setTextSize(18f);
+        diagnosticsHeading.setPadding(0, 24, 0, 4);
+        root.addView(diagnosticsHeading, matchWrap());
+
+        diagnosticsState = new TextView(this);
+        root.addView(diagnosticsState, matchWrap());
+
+        diagnosticsButton = new Button(this);
+        diagnosticsButton.setOnClickListener(view -> {
             verboseDiagnostics = !verboseDiagnostics;
-            diagnostics.setText(verboseDiagnostics
-                    ? "Disable OM8 Raw Diagnostics" : "Enable OM8 Raw Diagnostics");
             setOm8Diagnostics(verboseDiagnostics);
         });
-        root.addView(diagnostics, matchWrap());
+        root.addView(diagnosticsButton, matchWrap());
+        updateDiagnosticsUi();
 
         Button review = new Button(this);
         review.setText("Review / Confirm Candidate");
@@ -195,7 +212,7 @@ public final class MainActivity extends Activity {
         learningStatus = new TextView(this);
         learningStatus.setPadding(0, 12, 0, 0);
         root.addView(learningStatus, matchWrap());
-        return root;
+        return scroll;
     }
 
     private void requestNearbyDevicesIfNeeded() {
@@ -399,15 +416,38 @@ public final class MainActivity extends Activity {
     }
 
     private void setOm8Diagnostics(boolean enabled) {
+        boolean previous = Om8DiagnosticsPreferences.isEnabled(this);
+        if (!Om8DiagnosticsPreferences.setEnabled(this, enabled)) {
+            verboseDiagnostics = previous;
+            updateDiagnosticsUi();
+            updateStatus("Could not persist OM8 raw diagnostic preference.");
+            return;
+        }
         Intent intent = new Intent(this, Om8BleListenerService.class)
                 .setAction(Om8BleListenerService.ACTION_SET_DIAGNOSTICS)
                 .putExtra(Om8BleListenerService.EXTRA_DIAGNOSTICS_ENABLED, enabled);
         try {
             startService(intent);
+            verboseDiagnostics = enabled;
+            updateDiagnosticsUi();
             updateStatus("OM8 raw diagnostics " + (enabled ? "enabled" : "disabled")
-                    + " for the current listener.");
-        } catch (SecurityException error) {
+                    + ". Complete FFF4 packets will be logged.");
+        } catch (RuntimeException error) {
+            Om8DiagnosticsPreferences.setEnabled(this, previous);
+            verboseDiagnostics = previous;
+            updateDiagnosticsUi();
             updateStatus("Could not change OM8 diagnostics: " + error.getMessage());
+        }
+    }
+
+    private void updateDiagnosticsUi() {
+        if (diagnosticsState != null) {
+            diagnosticsState.setText("OM8 Raw Diagnostics: "
+                    + (verboseDiagnostics ? "ON" : "OFF"));
+        }
+        if (diagnosticsButton != null) {
+            diagnosticsButton.setText(verboseDiagnostics
+                    ? "Disable OM8 Raw Diagnostics" : "Enable OM8 Raw Diagnostics");
         }
     }
 

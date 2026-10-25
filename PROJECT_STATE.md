@@ -172,8 +172,10 @@ available, even before a camera is foreground. Existing bounded retries,
 Bluetooth on/off handling, watchdog, stale-GATT guards, and manual Start Bridge
 remain available.
 
-Phase 3B hardware status is **PENDING**. It requires the short association,
-background wake-up, power-cycle, Gimbal READY, Sony START/STOP regression.
+Phase 3B hardware status is **PASS**. The requested association, background
+wake-up, power-cycle, Gimbal READY, and Sony START/STOP regression completed on
+the target hardware. The raw-diagnostics UI/capture fix is independent of that
+transport result.
 
 The post-Phase-3B integration foundation keeps mappings profile-scoped and adds
 the explicit Edit Control Mappings and OM8 Raw Diagnostics controls. The

@@ -368,6 +368,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
         super.onCreate();
         handler = new Handler(Looper.getMainLooper());
         logger = new BridgeDiagnosticLogger(this);
+        verboseDiagnostics = Om8DiagnosticsPreferences.isEnabled(this);
         IntentFilter bluetoothFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         if (Build.VERSION.SDK_INT >= 33) {
             registerReceiver(bluetoothStateReceiver, bluetoothFilter, Context.RECEIVER_EXPORTED);
@@ -421,6 +422,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             stopSelf(startId);
         } else if (intent != null && ACTION_SET_DIAGNOSTICS.equals(intent.getAction())) {
             verboseDiagnostics = intent.getBooleanExtra(EXTRA_DIAGNOSTICS_ENABLED, false);
+            Om8DiagnosticsPreferences.setEnabled(this, verboseDiagnostics);
             log("OM8 diagnostics enabled=" + verboseDiagnostics);
         }
         return START_NOT_STICKY;
@@ -939,6 +941,10 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
                                                   long callbackEnter,
                                                   boolean callbackOnMainLooper,
                                                   long callbackThreadId) {
+        if (verboseDiagnostics) {
+            log(Om8RawDiagnosticFormatter.raw(
+                    callbackEnter, "0000fff4-0000-1000-8000-00805f9b34fb", value));
+        }
         if (value == null) {
             log("OM8 FFF4 notification ignored: null value");
             return;
@@ -947,12 +953,16 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
         Om8DumlStatusParser.Result parsed = Om8DumlStatusParser.parse(value);
         long parseEnd = SystemClock.elapsedRealtimeNanos();
         if (!parsed.isValid()) {
-            if (verboseDiagnostics) {
-                logger.packet("OM8_FFF4_RX_INVALID", value);
+            if (Om8LoggingPolicy.shouldLogParserRejection(
+                    verboseDiagnostics, parsed.getReason())) {
                 log("OM8 FFF4 notification ignored reason=" + parsed.getReason()
                         + " length=" + value.length);
             }
             return;
+        }
+
+        if (verboseDiagnostics) {
+            log(Om8RawDiagnosticFormatter.parsed(parsed));
         }
 
         long edgeDetectStart = SystemClock.elapsedRealtimeNanos();
@@ -976,12 +986,6 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
                     : BridgeRuntime.dispatch(event);
             long dispatchEnd = SystemClock.elapsedRealtimeNanos();
             int recBit = parsed.getRecordByte() & Om8DumlStatusParser.RECORD_BIT;
-            if (verboseDiagnostics) {
-                byte[] frame = parsed.getFrame();
-                logger.packet("OM8_FFF4_RX", frame);
-            }
-            String frameHex = verboseDiagnostics
-                    ? BridgeDiagnosticLogger.toHex(parsed.getFrame()) : "";
             log("OM8_REC_PRESS"
                     + " controllerEventSequence=" + sequence
                     + " recBit=0x" + String.format(Locale.US, "%02X", recBit)
@@ -989,18 +993,12 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
                     + " t_event_detected=" + edgeDetectEnd
                     + " callbackToDetectionNanos=" + (edgeDetectEnd - callbackEnter)
                     + " bridgeDispatchNanos=" + (dispatchEnd - dispatchStart)
-                    + " accepted=" + accepted
-                    + (verboseDiagnostics ? " frame=" + frameHex : ""));
+                    + " accepted=" + accepted);
             if (!accepted) {
                 log("BRIDGE_EVENT_REJECTED reason=no-selected-camera-adapter-or-camera-service");
             }
         } else if (edge == Om8RecButtonEdgeDetector.Event.RELEASE) {
-            byte[] frame = parsed.getFrame();
-            if (verboseDiagnostics) {
-                logger.packet("OM8_FFF4_RX", frame);
-            }
-            log("OM8_REC_RELEASE controllerEventSequence=" + lastOm8PressSequence
-                    + (verboseDiagnostics ? " frame=" + BridgeDiagnosticLogger.toHex(frame) : ""));
+            log("OM8_REC_RELEASE controllerEventSequence=" + lastOm8PressSequence);
             ControllerEvent event = new ControllerEvent(
                     ControllerEvent.Type.RECORD_UP,
                     id(),
@@ -1013,9 +1011,6 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
             if (sink != null) {
                 sink.onControllerEvent(event);
             }
-        } else if (verboseDiagnostics) {
-            logger.packet("OM8_FFF4_RX", parsed.getFrame());
-            log("OM8 status heartbeat cmdSet=0x04 cmdId=0x57");
         }
     }
 

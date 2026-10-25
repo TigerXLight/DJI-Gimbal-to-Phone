@@ -265,5 +265,35 @@ immediate `RECORD_TOGGLE`, and Record release remains a no-op.
 **OM8 Raw Diagnostics** is an explicit toggle for the current listener. It is off
 by default, so idle FFF4 heartbeats do not flood Logcat. When enabled it records
 raw frames for diagnosis; it does not change parsing, readiness, or camera action
-behavior. Disable it after capturing evidence.
+behavior. The control is under the scrollable **Advanced / Diagnostics** section
+of the main screen and shows `OM8 Raw Diagnostics: ON` or `OFF`. The preference
+is stored in app-private `SharedPreferences` and is restored by the listener
+service after recreation.
+
+For the controlled physical-control capture:
+
+1. Open Android-DJI-OM-Bridge and scroll to **Advanced / Diagnostics**.
+2. Press **Enable OM8 Raw Diagnostics**. Confirm the visible state changes to
+   `ON`.
+3. Start the bridge normally, wait for `OM8 LISTENER READY`, and capture the
+   required OM8 controls while watching:
+
+```cmd
+adb logcat -v monotonic -s Om8BleListenerService:I *:S
+```
+
+Raw mode emits one complete line per received FFF4 notification before parsing:
+
+```text
+OM8_RAW_FFF4 timestampNanos=... characteristic=0000fff4-... length=... value=55 ...
+```
+
+Valid packets also emit `OM8_PARSED_FFF4` with frame length, sender, receiver,
+flags, command set, command ID, and complete payload. Rejected packets retain the
+raw line and include the parser reason. The notification bytes are not truncated.
+
+4. After capture, press **Disable OM8 Raw Diagnostics** and confirm the state is
+   `OFF`. Normal mode suppresses routine heartbeat and expected parser-rejection
+   spam while retaining connection, readiness, release/press, and unusual error
+   messages.
 

@@ -396,7 +396,7 @@ camera media-pipeline latency.
 
 ## 2026-10-25 targeted consumer retest
 
-On Xperia 1 IV `QV770840CQ` with OM8 `OM8-15QPML`, the targeted checks A--G
+On the tested Sony Xperia 1 IV with OM8 `OM8-15QPML`, the targeted checks A--G
 passed on the consumer-preview build. The Sony default was
 `Record Press -> Record toggle`; the profile mapping survived navigation,
 process recreation, and reboot; Sony Video Pro START/STOP verified `REC` and

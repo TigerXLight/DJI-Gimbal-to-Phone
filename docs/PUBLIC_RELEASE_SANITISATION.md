@@ -35,6 +35,10 @@ The ignored `HCI_Captures/` and `PC_OM8_Captures/` directories remain local
 diagnostic material and are not tracked. They must stay excluded from any
 manual upload or release archive.
 
+The device-specific ADB serial was removed from the tracked testing narrative;
+the remaining `AA:BB:CC:DD:EE:FF` value is explicitly synthetic unit-test data,
+not a hardware identifier.
+
 ## History review
 
 All reachable commits currently use the author identity `TigerXLight` with a

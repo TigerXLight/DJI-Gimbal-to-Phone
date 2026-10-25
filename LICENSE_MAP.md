@@ -25,8 +25,9 @@ profile-scoped Android mapping storage, raw-diagnostic toggle, and Pixel/Samsung
 evidence records are original local additions. They do not add third-party
 runtime dependencies or executable upstream code.
 
-For the complete candidate ledger, see
-`T:\References\to go\Media\tools\Android-DJI-OM-Bridge-Research\provenance\ADAPTATION_LEDGER.json`.
+For the complete candidate ledger, see `provenance/ADAPTATION_LEDGER.json` in
+the separate research workspace. The research workspace is not a production
+runtime dependency and is not required to build the application.
 
 ## Audited but not incorporated
 

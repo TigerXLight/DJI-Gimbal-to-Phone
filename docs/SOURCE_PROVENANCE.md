@@ -17,13 +17,11 @@ OM8/Osmo Mobile physical side-wheel origin or raw OM8 BLE/DUML input path. The
 full source/method audit is
 `Android-DJI-OM-Bridge-Research/reports/27_DJI_UXSDK_FINAL_SOURCE_AUDIT.md`.
 
-Source project:
+Source project: a separate private Android project, not included in this
+repository.
 
-T:\References\to go\Media\tools\Insta360 send receive app
-
-Canonical freeze:
-
-FROZEN_REFERENCE\OM8_SONY_2026-10-24
+Canonical historical freeze: the immutable OM8/Sony reference snapshot held
+outside this repository.
 
 Extraction date: 2026-10-24.
 

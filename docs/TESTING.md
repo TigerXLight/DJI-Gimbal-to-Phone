@@ -46,8 +46,9 @@ foreground queries to the OM8 Record hot path.
 
 ## Exact debug-device commands
 
+Run the following commands from the repository root:
+
 ~~~cmd
-cd /d "T:\References\to go\Media\tools\Android-DJI-OM-Bridge"
 adb install -r "app\build\outputs\apk\debug\app-debug.apk"
 adb logcat -c
 adb shell am start -n com.androiddjibridge/com.androiddjibridge.app.MainActivity
@@ -75,6 +76,15 @@ adb logcat -d -v time | findstr /i "OM8_REC_PRESS CONTROLLER_EVENT SONY_ACTION_C
 ~~~
 
 If adb is not on PATH, substitute the platform-tools adb.exe path for this repository.
+
+## Consumer acceptance procedure prepared
+
+The executable interactive procedure is
+`tools/final_consumer_acceptance.ps1`. It is intentionally prepared but not
+executed in this preview because no Xperia device was attached. It installs the
+debug APK, captures logcat, pauses for each required user/device action, records
+the system-UI observations, and prints the timing-log extraction commands. It
+does not send shell key events or Bluetooth commands.
 
 ## Phase 1 hardware regression — PASS
 

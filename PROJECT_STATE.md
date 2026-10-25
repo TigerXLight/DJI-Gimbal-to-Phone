@@ -147,7 +147,7 @@ Broader reboot/process-death behavior remains later lifecycle validation.
 
 ## Source boundary
 
-Extraction source is FROZEN_REFERENCE\OM8_SONY_2026-10-24. The private project and frozen reference remain separate and unchanged.
+The private source project and historical frozen reference remain separate and unchanged.
 
 Phase 3A provenance is recorded in `LICENSE_MAP.md`,
 `DEPENDENCIES_AND_PROVENANCE.md`, and `THIRD_PARTY_NOTICES.md`. The only direct

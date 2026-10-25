@@ -13,6 +13,40 @@ DJI and Osmo are trademarks of their respective owner.
 The project is not affiliated with or endorsed by DJI. A final public release
 still requires the repository owner to select and add a project licence.
 
+## Consumer preview status
+
+This branch is a usable consumer-preview build of **DJI Gimbal Bridge**, not a
+final `1.0.0` release. The final Xperia 1 IV + OM8 acceptance run has not yet
+been completed, so this repository must not be published as hardware-accepted
+until that checklist passes.
+
+### First use
+
+1. Install **DJI Gimbal Bridge**.
+2. Enable the Android camera-control Accessibility service when Android asks.
+3. Tap **Find DJI Gimbal** and select the nearby `OM8-*` device once.
+4. Add or select a camera application and configure its own mappings.
+
+### Normal use
+
+1. Turn on the remembered gimbal.
+2. Open the configured camera application.
+3. Use the supported physical controls.
+
+The bridge reconnects using the remembered association/presence path where the
+Android version permits it. DJI Mimo, a PC, ADB, Android Bluetooth Settings
+pairing, and a routine **Start Bridge** press are not normal-use requirements.
+The bridge UI is for setup, camera-app presets, mappings, connection status,
+and diagnostics. Each configured camera application has its own preset and the
+matching preset is selected automatically when that package is foreground.
+
+The current evidence boundary is deliberately narrow: Sony Video Pro Record
+START/STOP is the historical hardware-tested path, pending the complete
+consumer acceptance rerun. Side-wheel press is decoded but lens switching is
+not enabled; side-wheel rotation/Zoom is
+`UNSUPPORTED_NO_SAFE_PATH`. M, Trigger, Switch, and Joystick are decoded for
+diagnostics/future profiles but have no default Sony action.
+
 ## Phase 1 status
 
 **BUILD/UNIT TEST: PASS**

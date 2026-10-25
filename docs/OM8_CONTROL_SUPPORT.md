@@ -1,5 +1,10 @@
 # OM8 control support matrix
 
+This matrix records the current product evidence boundary. The Sony Video Pro
+Record path was hardware-tested historically, but the consumer-preview UI and
+lifecycle changes still require the final acceptance sequence before a public
+release or `1.0.0` claim.
+
 This matrix separates passive protocol decoding from a camera action actually
 being safe and hardware-validated. A decoded controller state is not by itself
 permission to click a camera control.

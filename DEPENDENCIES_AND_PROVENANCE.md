@@ -49,9 +49,9 @@ in its manifest. They are not new production dependencies in Phase 3A:
   no source was incorporated.
 
 See the synchronized research ledger for every repository, author, commit,
-licence, proposed target, and reuse classification:
-
-`T:\References\to go\Media\tools\Android-DJI-OM-Bridge-Research\provenance\ADAPTATION_LEDGER.json`
+licence, proposed target, and reuse classification in the separate research
+workspace at `provenance/ADAPTATION_LEDGER.json`. The research workspace is
+not required to build or run this repository.
 
 ## Final DJI UXSDK audit
 

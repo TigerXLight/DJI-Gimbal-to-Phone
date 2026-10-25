@@ -4,6 +4,11 @@ Only evidence-backed entries are listed as tested. The final DJI phase preserves
 the real-device regression and distinguishes passive input decoding from camera
 action support.
 
+The current installed build is `0.2.0-consumer-preview` / versionCode `2`.
+Historical OM8/Sony hardware validation is preserved, but consumer acceptance
+of the productized UI, notification, system Bluetooth presentation, recovery,
+and repeated timing sequence is still pending.
+
 Phase 2A adds profile architecture only; it does not add a new camera-app support
 claim. Sony Video Pro remains the only hardware-tested camera application.
 

@@ -5,8 +5,8 @@ Date: 2026-10-25
 ## Scope
 
 This review covers every tracked file in the Android-DJI-OM-Bridge production
-repository at commit `773a3c8239aaecfc5b58ca4f1c9004c5634f64a2` and the complete
-reachable Git history. It is a source-publication review, not a
+repository at the current release-review HEAD and the complete reachable Git
+history. It is a source-publication review, not a
 hardware or penetration test. Ignored local capture directories were checked
 for tracking status but are not part of the public source tree.
 

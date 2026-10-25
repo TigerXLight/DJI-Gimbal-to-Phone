@@ -13,6 +13,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -54,6 +55,7 @@ public final class MainActivity extends Activity {
     private boolean verboseDiagnostics;
     private TextView diagnosticsState;
     private Button diagnosticsButton;
+    private TextView gimbalModel;
     private TextView gimbalDevice;
     private LinearLayout deviceSection;
     private LinearLayout deviceIdentity;
@@ -169,7 +171,8 @@ public final class MainActivity extends Activity {
 
         TextView gimbalHeading = new TextView(this);
         gimbalHeading.setText("DJI Gimbal");
-        gimbalHeading.setTextSize(17f);
+        gimbalHeading.setTextSize(18f);
+        gimbalHeading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         gimbalHeading.setTextColor(Color.BLACK);
         gimbalHeading.setPadding(0, 0, 0, 6);
         deviceSection.addView(gimbalHeading, matchWrap());
@@ -178,8 +181,13 @@ public final class MainActivity extends Activity {
         deviceIdentity.setOrientation(LinearLayout.VERTICAL);
         deviceIdentity.setPadding(12, 8, 12, 8);
         deviceSection.addView(deviceIdentity, matchWrap());
+        gimbalModel = new TextView(this);
+        gimbalModel.setTextSize(16f);
+        gimbalModel.setTextColor(Color.BLACK);
+        deviceIdentity.addView(gimbalModel, matchWrap());
         gimbalDevice = new TextView(this);
-        gimbalDevice.setTextSize(15f);
+        gimbalDevice.setTextSize(13f);
+        gimbalDevice.setTextColor(Color.DKGRAY);
         deviceIdentity.addView(gimbalDevice, matchWrap());
         status = new TextView(this);
         status.setTextSize(13f);
@@ -225,9 +233,10 @@ public final class MainActivity extends Activity {
 
         TextView cameraHeading = new TextView(this);
         cameraHeading.setText("Camera Apps");
-        cameraHeading.setTextSize(17f);
+        cameraHeading.setTextSize(18f);
+        cameraHeading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         cameraHeading.setTextColor(Color.BLACK);
-        cameraHeading.setPadding(0, 20, 0, 6);
+        cameraHeading.setPadding(0, 16, 0, 4);
         root.addView(cameraHeading, matchWrap());
         cameraAppsContainer = new LinearLayout(this);
         cameraAppsContainer.setOrientation(LinearLayout.VERTICAL);
@@ -474,12 +483,22 @@ public final class MainActivity extends Activity {
         if ("<none>".equals(deviceName) && associated != null) {
             deviceName = value(associated.getDisplayName());
         }
-        gimbalDevice.setText(associated == null
-                ? "No DJI gimbal selected" : deviceName);
+        if (associated == null) {
+            gimbalModel.setText("No DJI gimbal selected");
+            gimbalDevice.setText("");
+            gimbalDevice.setVisibility(ViewGroup.GONE);
+        } else if (isKnownOm8AdvertisedName(deviceName)) {
+            gimbalModel.setText("Osmo Mobile 8");
+            gimbalDevice.setText(deviceName);
+            gimbalDevice.setVisibility(ViewGroup.VISIBLE);
+        } else {
+            gimbalModel.setText(deviceName);
+            gimbalDevice.setText("");
+            gimbalDevice.setVisibility(ViewGroup.GONE);
+        }
         status.setText(simpleConnectionState(snapshot, associated));
         deviceIdentity.setBackgroundColor(snapshot.isConnected()
                 ? Color.rgb(220, 238, 255) : Color.TRANSPARENT);
-        gimbalDevice.setTextSize(snapshot.isConnected() ? 16f : 17f);
         disconnectButton.setTextSize(13f);
         forgetGimbalButton.setTextSize(13f);
         boolean hasAssociation = associated != null;
@@ -538,7 +557,7 @@ public final class MainActivity extends Activity {
         for (CameraProfile profile : profiles) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.VERTICAL);
-            row.setPadding(0, 4, 0, 4);
+            row.setPadding(0, 2, 0, 2);
             TextView description = new TextView(this);
             description.setText(profile.getDisplayName());
             description.setTextSize(16f);
@@ -1035,6 +1054,11 @@ public final class MainActivity extends Activity {
 
     private String value(String value) {
         return value == null || value.isEmpty() ? "<none>" : value;
+    }
+
+    private boolean isKnownOm8AdvertisedName(String deviceName) {
+        return deviceName != null
+                && deviceName.regionMatches(true, 0, "OM8-", 0, 4);
     }
 
     private void styleCompactButton(Button button, boolean secondary) {

@@ -157,25 +157,10 @@ public final class MainActivity extends Activity {
         title.setTextColor(Color.BLACK);
         root.addView(title, matchWrap());
 
-        TextView subtitle = new TextView(this);
-        subtitle.setText("Connect once. Use it with your camera apps.");
-        subtitle.setTextSize(14f);
-        subtitle.setTextColor(Color.DKGRAY);
-        subtitle.setPadding(0, 4, 0, 16);
-        root.addView(subtitle, matchWrap());
-
         deviceSection = new LinearLayout(this);
         deviceSection.setOrientation(LinearLayout.VERTICAL);
         deviceSection.setPadding(0, 0, 0, 8);
         root.addView(deviceSection, matchWrap());
-
-        TextView gimbalHeading = new TextView(this);
-        gimbalHeading.setText("DJI Gimbal");
-        gimbalHeading.setTextSize(18f);
-        gimbalHeading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        gimbalHeading.setTextColor(Color.BLACK);
-        gimbalHeading.setPadding(0, 0, 0, 6);
-        deviceSection.addView(gimbalHeading, matchWrap());
 
         deviceIdentity = new LinearLayout(this);
         deviceIdentity.setOrientation(LinearLayout.VERTICAL);

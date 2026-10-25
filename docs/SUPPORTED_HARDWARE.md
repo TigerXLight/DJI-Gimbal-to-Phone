@@ -67,7 +67,7 @@ established.
 
 ## Consumer-preview status
 
-The installed app name is **DJI Gimbal Bridge**. The consumer-preview UI
+The installed app name is **DJI Gimbal Pairing**. The consumer-preview UI
 supports remembered `OM8-*` association, automatic/presence-assisted reconnect,
 per-camera profile rows, per-profile mappings, and a collapsed diagnostic area.
 These UI changes are not themselves a new hardware validation claim. The

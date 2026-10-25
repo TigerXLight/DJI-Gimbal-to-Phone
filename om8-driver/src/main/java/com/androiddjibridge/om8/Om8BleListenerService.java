@@ -1108,7 +1108,7 @@ public final class Om8BleListenerService extends Service implements GimbalDriver
         Notification.Builder builder = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(this, CHANNEL_ID)
                 : new Notification.Builder(this);
-        return builder.setContentTitle("DJI Gimbal Bridge")
+        return builder.setContentTitle("DJI Gimbal Pairing")
                 .setContentText(text)
                 .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
                 .setContentIntent(pending)

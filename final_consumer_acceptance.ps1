@@ -162,7 +162,7 @@ $captureRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("DJI-Gimbal-Bridge-a
 New-Item -ItemType Directory -Path $captureRoot -Force | Out-Null
 $script:NotesPath = Join-Path $captureRoot "acceptance-notes.txt"
 $logPath = Join-Path $captureRoot "logcat.txt"
-Add-Content -LiteralPath $script:NotesPath -Value "DJI Gimbal Bridge consumer acceptance prepared run"
+Add-Content -LiteralPath $script:NotesPath -Value "DJI Gimbal Pairing consumer acceptance prepared run"
 Add-Content -LiteralPath $script:NotesPath -Value ("ADB serial: {0}" -f $script:Serial)
 Add-Content -LiteralPath $script:NotesPath -Value ("APK: {0}" -f (Resolve-Path -LiteralPath $ApkPath).Path)
 

@@ -7,7 +7,7 @@ hardware acceptance.
 ## Suggested repository metadata
 
 - Repository name: `Android-DJI-OM-Bridge`
-- Installed app name: `DJI Gimbal Bridge`
+- Installed app name: `DJI Gimbal Pairing`
 - Short description: `A fail-closed Android bridge for DJI OM gimbals and configured camera-app controls.`
 - Suggested topics: `android`, `bluetooth-le`, `ble`, `dji`, `osmo-mobile`, `gimbal`, `camera-control`, `accessibility-service`
 - About text: `Unofficial Android companion for selected DJI OM gimbals; Sony Video Pro Record is the only hardware-tested camera path in the current preview.`
@@ -16,11 +16,11 @@ The About text must not imply universal DJI, Android camera, zoom, or side-wheel
 support. Side-wheel press is decoded but not mapped to Sony lens switching;
 side-wheel rotation is `UNSUPPORTED_NO_SAFE_PATH`.
 
-## First release proposal
+## Current preview release preparation
 
-Suggested title: `DJI Gimbal Bridge 0.2.0 Consumer Preview`
+Suggested title: `DJI Gimbal Pairing 0.2.0 Consumer Preview`
 
-Suggested notes:
+Suggested preview notes:
 
 - Consumer-first Find DJI Gimbal and remembered association flow.
 - Automatic/presence-assisted reconnect where Android permits it.
@@ -29,14 +29,16 @@ Suggested notes:
   action.
 - OM8 passive Record decoding and raw diagnostics remain available.
 - Side-wheel rotation/Zoom is unavailable; no speculative FFF5 replay is used.
-- Final Xperia/OM8 consumer acceptance is still pending; this is not `1.0.0`.
+- Current version remains `0.2.0-consumer-preview` (versionCode `2`); this is not
+  `1.0.0`.
 
-Do not attach a public release APK until the final hardware checklist and
-licence/public-history gates pass.
+The current APK is prepared for offline inspection and the primary freeze, but
+must not be published until the project licence and public-history decisions are
+resolved. No GitHub remote is configured in this checkout.
 
 ## Unused 1.0 template
 
-Release title: `DJI Gimbal Bridge 1.0.0`
+Release title: `DJI Gimbal Pairing 1.0.0`
 
 Use only after the final acceptance procedure passes, the project licence is
 selected, the public history/archive is sanitized, and the README/support

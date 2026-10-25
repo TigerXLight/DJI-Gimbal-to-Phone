@@ -1,6 +1,6 @@
-# DJI Gimbal Bridge
+# DJI Gimbal Pairing
 
-DJI Gimbal Bridge is an unofficial Android companion for a remembered DJI OM
+DJI Gimbal Pairing is an unofficial Android companion for a remembered DJI OM
 gimbal. It maintains the direct BLE notification connection and routes verified
 physical controls to explicitly configured camera-app adapters.
 
@@ -15,14 +15,14 @@ still requires the repository owner to select and add a project licence.
 
 ## Consumer preview status
 
-This branch is a usable consumer-preview build of **DJI Gimbal Bridge**, not a
+This branch is a usable consumer-preview build of **DJI Gimbal Pairing**, not a
 final `1.0.0` release. The final Xperia 1 IV + OM8 acceptance run has not yet
 been completed, so this repository must not be published as hardware-accepted
 until that checklist passes.
 
 ### First use
 
-1. Install **DJI Gimbal Bridge**.
+1. Install **DJI Gimbal Pairing**.
 2. Enable the Android camera-control Accessibility service when Android asks.
 3. Tap **Find DJI Gimbal** and select the nearby `OM8-*` device once.
 4. Add or select a camera application and configure its own mappings.
@@ -99,7 +99,7 @@ The 1.522708 ms STOP value is one observed sample/outlier, not a claimed permane
 The current productization build is `0.2.0-consumer-preview` and is not yet a
 1.0 acceptance release. The intended first-use flow is:
 
-1. Install **DJI Gimbal Bridge**.
+1. Install **DJI Gimbal Pairing**.
 2. Grant Nearby Devices and notification permissions if Android requests them.
 3. Enable the one Android Accessibility service required for camera control.
 4. Tap **Find DJI Gimbal** and select the nearby `OM8-*` device once.

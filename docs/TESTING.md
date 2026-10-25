@@ -330,7 +330,7 @@ for this DJI closeout.
 The productization build remains `0.2.0-consumer-preview` (versionCode `2`). The
 following product-level checks are still required before any 1.0/publication decision:
 
-1. With no saved association, open **DJI Gimbal Bridge**, press **Find DJI
+1. With no saved association, open **DJI Gimbal Pairing**, press **Find DJI
    Gimbal**, select the nearby `OM8-*` device, and confirm the association is
    retained.
 2. Enable **Camera Control** once, leave the bridge UI, turn the remembered OM8
@@ -350,7 +350,7 @@ following product-level checks are still required before any 1.0/publication dec
    delivers that recovery; force-stopped apps and device policy may still prevent it.
 7. Inspect Android Bluetooth Settings and Quick Settings while the bridge owns
    the GATT connection. Record whether the OM8 is surfaced as connected/bonded;
-   do not force bonding. The app notification must say **DJI Gimbal Bridge** and
+   do not force bonding. The app notification must say **DJI Gimbal Pairing** and
    show a useful OM8 connection status if system UI is silent.
 8. Run five bounded START/STOP pairs and retain the timing lines. Report
    notification callback -> edge detection, callback -> ACTION_CLICK, click ->

@@ -218,7 +218,7 @@ docs/UPSTREAM_INTEGRATION.md.
 
 ## Consumer productization preview
 
-The installed application name is now **DJI Gimbal Bridge**. The main screen
+The installed application name is now **DJI Gimbal Pairing**. The main screen
 offers a user-facing **Find DJI Gimbal** flow, remembered connection status,
 separate **Disconnect** and **Forget DJI Gimbal** actions, per-camera profile
 rows with **Mappings**, and a collapsed **Advanced / Diagnostics** section.

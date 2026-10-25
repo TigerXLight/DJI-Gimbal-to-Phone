@@ -101,7 +101,7 @@ adapter-by-adapter validation, not a universal compatibility claim.
 
 ## Consumer productization — IN PROGRESS
 
-- User-facing name is **DJI Gimbal Bridge**.
+- User-facing name is **DJI Gimbal Pairing**.
 - Main screen is organized around **Find DJI Gimbal**, remembered connection
   status, camera-app rows, per-app **Mappings**, and a collapsed **Advanced /
   Diagnostics** area.

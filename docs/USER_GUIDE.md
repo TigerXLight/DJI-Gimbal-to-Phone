@@ -1,4 +1,4 @@
-# DJI Gimbal Bridge user guide
+# DJI Gimbal Pairing user guide
 
 ## First use
 
@@ -10,7 +10,7 @@
 3. Tap **Find DJI Gimbal** and select the nearby `OM8-*` device. The selected
    device is remembered without hardcoding its address.
 4. In **Camera Apps**, press **Mappings** for the camera app you intend to use.
-   The built-in Sony Video Pro profile is labelled `BUILTIN / HARDWARE_TESTED`.
+   The built-in Sony Video Pro profile is the tested camera path.
 5. For another eligible camera app, use **+ Add camera app** and learn one
    Accessibility-visible Record control only if the app exposes a stable,
    clickable node. Review and confirm the candidate before saving it.
@@ -44,7 +44,7 @@ reconnection while preserving the remembered device. **Forget DJI Gimbal**
 clears the saved association. **Reconnect now** is intentionally under
 **Advanced / Diagnostics** for recovery; it is not part of normal daily use.
 
-The foreground notification says **DJI Gimbal Bridge** and shows the OM8
+The foreground notification says **DJI Gimbal Pairing** and shows the OM8
 connection state while the connected-device service is active. Android system
 Bluetooth screens may or may not expose an active app-owned GATT connection as
 a normal bonded/connected device; the bridge notification is the authoritative

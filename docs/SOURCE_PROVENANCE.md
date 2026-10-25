@@ -1,5 +1,13 @@
 # Source provenance
 
+## Project licence boundary
+
+The repository-root `LICENSE` is MIT and applies to project-owned/original and
+independently implemented production code. It does not relicense the attributed
+OpenGimbal material; its MIT copyright/notice is retained in
+`THIRD_PARTY_NOTICES.md`. No Apache-2.0, GPL, no-licence expressive source, or
+DJI proprietary/EULA source is incorporated.
+
 ## Final DJI UXSDK source audit
 
 The final bounded audit cloned and inspected these repositories without copying

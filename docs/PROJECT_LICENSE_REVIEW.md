@@ -38,29 +38,24 @@ distribution provided the OpenGimbal copyright and MIT notice remain with the
 adapted portion. The research-only repositories do not add distribution
 obligations because their source was not incorporated.
 
-This technical assessment does not establish who owns or may license all
-original project code. The repository currently has no top-level `LICENSE`,
-and the Git history uses a personal author identity. Those are release-owner
-decisions, not facts that should be guessed by an implementation agent.
+For this publication request, the project owner has selected MIT for the
+project-owned/original production code. The top-level `LICENSE` applies only to
+that project-owned scope; it does not relicense incorporated third-party code.
+The GitHub publication mirror will sanitize the personal development email from
+public commit metadata without changing the canonical local history.
 
 ## Recommendation
 
-MIT is the most straightforward candidate for the project if the repository
-owner confirms authority to license the original work and accepts the existing
-provenance boundary. It is compatible with the direct OpenGimbal adaptation
-and keeps the public project simple. Apache-2.0 is another possible choice if
-the owner wants an explicit patent grant, but it would still require the same
-ownership decision and a complete notice review.
-
-No top-level `LICENSE` file is added in this task because the owner has not
-selected or authorized a project licence. Publication should remain blocked
-until that choice is made and the selected licence text is added at the
-repository root.
+MIT is the selected project licence because the audited project-owned code can
+be distributed under MIT and the only incorporated source boundary is also
+MIT-compatible OpenGimbal material. Apache-2.0 code is not incorporated. The
+top-level `LICENSE` has been added for the project-owned scope.
 
 ## Release gate
 
-**Licence selection: PENDING OWNER DECISION**
+**Licence selection: MIT — RESOLVED FOR PUBLICATION**
 
-Do not describe the repository as open source, publish a GitHub release, or
-claim a final `1.0.0` licence state until the project licence and history
-publication choice are settled.
+The public repository may describe the project-owned scope as MIT-licensed while
+retaining the separate OpenGimbal MIT attribution and all file/component-specific
+notices. Publication still requires the sanitized mirror and the normal public
+tree/privacy checks.

@@ -427,7 +427,7 @@ pre-1.0 and unpublished.
 Before any GitHub publication, audit tracked files for personal paths, device
 addresses, raw bugreports/HCI captures, credentials, private project-memory
 material, and build/IDE caches. The production repository must contain no
-Insta360 implementation or private evidence archive. The project licence is
-still intentionally undecided in this preview; do not publish until a licence
-is explicitly selected and added as `LICENSE`.
+Insta360 implementation or private evidence archive. Project-owned production
+code is MIT-licensed by the repository-root `LICENSE`; retain the separate
+OpenGimbal notice and do not publish the canonical personal author email.
 

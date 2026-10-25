@@ -1,5 +1,16 @@
 # Dependencies and provenance
 
+## Project licence
+
+Project-owned/original and independently implemented production code is licensed
+under the MIT License in the repository-root `LICENSE`. This does not relicense
+the separate attributed OpenGimbal portion or any future file-specific component.
+
+No Apache-2.0 source is incorporated. No GPL/copyleft or no-licence expressive
+source is incorporated. Research-only repositories contribute protocol and
+interoperability evidence only. DJI proprietary/EULA material was not copied
+into production.
+
 ## Phase 3A direct/partial adaptation
 
 | Upstream repository | Commit | Upstream path/class/method | Local target | Adaptation | Licence | Validation |

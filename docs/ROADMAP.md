@@ -111,8 +111,9 @@ adapter-by-adapter validation, not a universal compatibility claim.
 - Foreground camera package changes select the matching configured profile and
   mapping automatically; unknown packages fail closed.
 - The current build is `0.2.0-consumer-preview`, not 1.0. The Xperia/OM8
-  product acceptance sequence, timing summary, release licence selection, and
-  public-file sanitization are still required before a public release claim.
+  product acceptance sequence, timing summary, and public-file sanitization are
+  documented for the preview publication decision; project-owned code is now
+  MIT-licensed in the repository-root `LICENSE`.
 - Sony Video Pro remains the only hardware-tested camera application. Side-wheel
   rotation remains `UNSUPPORTED_NO_SAFE_PATH`, while side-wheel press is decoded
   but not routed to an unsafe lens-switch fallback.

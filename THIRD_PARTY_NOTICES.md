@@ -1,5 +1,11 @@
 # Third-party notices
 
+## Project-owned code
+
+Project-owned/original and independently implemented production code is licensed
+under the repository-root MIT `LICENSE`. The notices below remain applicable to
+the separately attributed third-party material.
+
 ## DJI Mobile UXSDK repositories audited, not incorporated
 
 The final source audit examined:
@@ -55,8 +61,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-No GPL, no-license, or other restricted upstream source was copied into the
-Phase 3A production implementation.
+No Apache-2.0, GPL, no-license, or other restricted upstream source was copied
+into the production implementation. Research-only source and DJI proprietary/
+EULA material were not incorporated.
 
 ## Phase 3B lifecycle attribution
 

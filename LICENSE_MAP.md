@@ -1,12 +1,14 @@
 # Licence map
 
-This repository contains original Android-DJI-OM-Bridge code plus a small
-Phase 3A mapping boundary adapted from permissively licensed upstream design.
-No upstream repository was copied wholesale into the production tree.
+This repository contains original/independently implemented
+Android-DJI-OM-Bridge code plus small attributed adaptations from permissively
+licensed upstream implementation. Project-owned code is licensed under the
+top-level MIT `LICENSE`. That project licence does not relicense third-party
+components.
 
 | Repository portion | Classification | Provenance/licence |
 |---|---|---|
-| `app/`, `om8-driver/`, Sony adapter, existing `bridge-core/` | Original project implementation, except where a file-level attribution says otherwise | Android-DJI-OM-Bridge authorship; project licence policy applies |
+| `app/`, `om8-driver/`, Sony adapter, existing `bridge-core/` | Original or independently implemented project code, except where a file-level attribution says otherwise | Project-owned scope; top-level MIT `LICENSE` applies |
 | `bridge-core/AssociatedDevice.java`, `AutoConnectPolicy.java`, `ReconnectBackoff.java`, and the Phase 3B lifecycle integration | Local Android integration and pure policy code informed by OpenGimbal's MIT lifecycle ideas; no upstream source file copied | OpenGimbal `6b7f403265d4ef96c9238ecaeed12bf5ce9f711c`, MIT; attribution retained in the central provenance documents |
 | `bridge-core/CameraAction.java`, `ControllerTrigger.java`, `MappingDecision.java`, `MappingEngine.java` | Original local semantic model and resolver | No third-party source copied |
 | `bridge-core/MappingStore.java` | Modified/partial adaptation of the OpenGimbal mapping-store boundary | ItzDFPlayer/OpenGimbal, commit `6b7f403265d4ef96c9238ecaeed12bf5ce9f711c`, MIT; copyright Denys (2026) |
@@ -14,6 +16,19 @@ No upstream repository was copied wholesale into the production tree.
 | `bridge-core` mapping tests | Original local tests, informed by OpenGimbal's pure mapping-test separation | Local tests |
 | `docs/`, root provenance documents | Project documentation and required third-party attribution | Includes the OpenGimbal MIT notice |
 | `tests/` | Project protocol vectors and fixtures | Generated/project test material unless individually marked |
+
+## Licence classification summary
+
+- Project-owned/original or independently implemented code: MIT under the
+  top-level `LICENSE`.
+- Incorporated MIT code: the attributed OpenGimbal mapping/lifecycle boundary;
+  its copyright and MIT notice remain in `THIRD_PARTY_NOTICES.md`.
+- Incorporated Apache-2.0 code: none identified or incorporated.
+- Other licensed incorporated material: none identified or incorporated.
+- Research/protocol-evidence-only repositories: documented as provenance only;
+  their source licences are not inherited by this project.
+- Proprietary/EULA material: DJI UXSDK/Mimo material was studied only and no
+  proprietary source, binary, or runtime dependency is incorporated.
 
 The OM8 FFF4 parser, GATT lifecycle, Sony Accessibility hot path, prepared-node
 path, safety snapshot, and Sony re-arm implementation remain local production

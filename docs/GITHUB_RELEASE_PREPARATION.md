@@ -1,8 +1,7 @@
 # GitHub release preparation
 
-This document prepares the repository for a future public GitHub release. It
-does not publish the repository, create a release, select a licence, or claim
-hardware acceptance.
+This document prepares the repository for public GitHub release. It does not
+publish the repository or claim hardware acceptance.
 
 ## Suggested repository metadata
 
@@ -32,9 +31,9 @@ Suggested preview notes:
 - Current version remains `0.2.0-consumer-preview` (versionCode `2`); this is not
   `1.0.0`.
 
-The current APK is prepared for offline inspection and the primary freeze, but
-must not be published until the project licence and public-history decisions are
-resolved. No GitHub remote is configured in this checkout.
+The current APK is prepared for offline inspection and the primary freeze. The
+project-owned code licence is MIT; publication uses a sanitized mirror so the
+canonical development email is not exposed.
 
 ## Unused 1.0 template
 
@@ -48,11 +47,12 @@ unavailable and no speculative implementation is advertised.
 
 ## Publication checklist
 
-1. Select and add the project licence.
-2. Decide whether to publish a new sanitized Git history or retain the current
-   history with explicit approval.
+1. Confirm the MIT `LICENSE` and third-party notices are present.
+2. Publish a sanitized Git history rather than exposing the canonical personal
+   author email.
 3. Re-run `docs/PUBLIC_RELEASE_SANITISATION.md` checks from a clean clone.
 4. Run `powershell -ExecutionPolicy Bypass -File .\final_consumer_acceptance.ps1`
    on the Xperia/OM8 setup, passing `-AdbPath` if adb is not on PATH.
 5. Update the preview/final freeze and manifest only after acceptance.
-6. Create the GitHub repository/release only with explicit authorization.
+6. Push the sanitized mirror to `TigerXLight/DJI-Gimbal-to-Phone`, verify
+   remote HEAD/tree equality, then create the matching release.

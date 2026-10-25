@@ -10,8 +10,8 @@ Unofficial project.
 Not affiliated with or endorsed by DJI.
 DJI and Osmo are trademarks of their respective owner.
 
-The project is not affiliated with or endorsed by DJI. A final public release
-still requires the repository owner to select and add a project licence.
+The project is not affiliated with or endorsed by DJI. Project-owned production
+code is released under the MIT License; third-party notices remain separate.
 
 ## Consumer preview status
 

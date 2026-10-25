@@ -56,8 +56,7 @@ publication.
 
 ## Remaining publication concerns
 
-- The repository does not yet contain a top-level project `LICENSE`.
-- The project licence has not been selected by the repository owner.
+- The project-owned scope now has a top-level MIT `LICENSE`.
 - OpenGimbal MIT notices are present for the adapted mapping/lifecycle boundary;
   no GPL or no-license source was copied into production.
 - The two DJI UXSDK repositories and the broader research catalogue are
@@ -71,10 +70,11 @@ publication.
 Working-tree source sanitisation: **PASS**, after the path-reference fixes in
 this change.
 
-Public publication readiness: **FAIL / NOT READY**. The remaining blockers are
-owner approval of the project licence and an explicit decision about the
-personal Git history identity/path history. Hardware acceptance is also still
-pending, although it is a separate product-validation gate.
+Public publication readiness: **READY FOR SANITIZED MIRROR**. The remaining
+publication task is to create the mirror without the canonical personal email,
+verify its tracked tree/content against the final production HEAD, and push it
+to the existing target repository. Hardware acceptance/version status remains
+a separate product-validation gate.
 
 ## Recheck commands
 

@@ -119,6 +119,15 @@ The Sony adapter requires the user to enable the bridge AccessibilityService. It
 
 See docs/ROADMAP.md and NEXT_STEPS.md.
 
+The DJI phase is now closed for the current evidence. The OM8 parser exposes
+verified passive `04/57` fields for joystick X/Y, M/trigger states, switch
+single/double, side-wheel press, and Record. Only the Record rising edge is
+mapped to Sony Video Pro; Record release is a no-op. Side-wheel **PRESS** is
+decoded, while side-wheel **ROTATION** is `UNSUPPORTED_NO_SAFE_PATH`: repeated
+passive FFF4/FFF3/custom-channel captures, Mimo-owned HCI/ATT analysis, USB-C
+reconnaissance, and the final DJI UXSDK audit did not establish a safe external
+encoding. The bridge does not guess telemetry or replay FFF5.
+
 ## Current universal-bridge foundation
 
 The bridge now keeps mappings per selected camera profile and exposes a small

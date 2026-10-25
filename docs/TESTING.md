@@ -292,6 +292,20 @@ Valid packets also emit `OM8_PARSED_FFF4` with frame length, sender, receiver,
 flags, command set, command ID, and complete payload. Rejected packets retain the
 raw line and include the parser reason. The notification bytes are not truncated.
 
+## Final DJI closeout evidence
+
+The final decoder evidence is summarized in `OM8_CONTROL_SUPPORT.md`. The
+passive `04/57` fields for joystick X/Y, M/trigger state, switch,
+side-wheel press, and Record are parser-tested. Only Record has a mapped
+camera action and real Sony Video Pro hardware regression. Side-wheel rotation
+is not a production test target because its external encoding remains
+unresolved and is classified `UNSUPPORTED_NO_SAFE_PATH`.
+
+The final bounded DJI UXSDK audit is recorded in the research workspace as
+`reports/27_DJI_UXSDK_FINAL_SOURCE_AUDIT.md`; it found camera-command/UI APIs
+but no physical OM8 wheel origin. No additional wheel experiment is required
+for this DJI closeout.
+
 4. After capture, press **Disable OM8 Raw Diagnostics** and confirm the state is
    `OFF`. Normal mode suppresses routine heartbeat and expected parser-rejection
    spam while retaining connection, readiness, release/press, and unusual error

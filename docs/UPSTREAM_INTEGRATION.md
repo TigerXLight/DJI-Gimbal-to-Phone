@@ -43,6 +43,18 @@ coordinate tap, gesture fallback, arbitrary intent, arbitrary GATT write, or
 Insta360 code was added. The full provenance ledger is maintained in the sibling
 research workspace and mirrored by the repository provenance documents.
 
+## Final DJI UXSDK audit and OM8 boundary
+
+`dji-sdk/Mobile-UXSDK-Android` (`6a28754964a7517a0602dfda0bad09adc938489a`)
+and `dji-sdk/Mobile-UXSDK-Beta-Android`
+(`ed5ca45d118efbada6716f372b96dc5fe11e0620`) were audited in full enough for
+the bounded closeout. The Beta repository shows camera-command/UI paths for
+focus ring, focus mode, and touch focus; neither repository shows an OM8
+physical side-wheel input origin or raw OM8 BLE/DUML transport. Neither is a
+production dependency. The side-wheel rotation status is therefore
+`UNSUPPORTED_NO_SAFE_PATH`; side-wheel press is separately decoded from the
+verified FFF4 `04/57` field.
+
 ## Scope boundary
 
 The current release establishes the reusable architecture and safe controls UI;

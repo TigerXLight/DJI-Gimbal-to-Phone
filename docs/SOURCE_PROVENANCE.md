@@ -1,5 +1,22 @@
 # Source provenance
 
+## Final DJI UXSDK source audit
+
+The final bounded audit cloned and inspected these repositories without copying
+source into production:
+
+- `dji-sdk/Mobile-UXSDK-Android`, `master`, commit
+  `6a28754964a7517a0602dfda0bad09adc938489a`; DJI UX SDK EULA with MIT sample
+  code boundary.
+- `dji-sdk/Mobile-UXSDK-Beta-Android`, `master`, commit
+  `ed5ca45d118efbada6716f372b96dc5fe11e0620`; MIT.
+
+The Beta source contains lens-scoped focus-ring, focus-mode, and touch-focus
+calls through DJI `CameraKey`/`KeyManager` APIs. Neither repository contains an
+OM8/Osmo Mobile physical side-wheel origin or raw OM8 BLE/DUML input path. The
+full source/method audit is
+`Android-DJI-OM-Bridge-Research/reports/27_DJI_UXSDK_FINAL_SOURCE_AUDIT.md`.
+
 Source project:
 
 T:\References\to go\Media\tools\Insta360 send receive app

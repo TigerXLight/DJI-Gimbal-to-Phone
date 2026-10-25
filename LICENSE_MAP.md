@@ -27,3 +27,16 @@ runtime dependencies or executable upstream code.
 
 For the complete candidate ledger, see
 `T:\References\to go\Media\tools\Android-DJI-OM-Bridge-Research\provenance\ADAPTATION_LEDGER.json`.
+
+## Audited but not incorporated
+
+The final DJI UXSDK audit added these research-only provenance entries:
+
+| Repository | Commit | Classification |
+|---|---|---|
+| `dji-sdk/Mobile-UXSDK-Android` | `6a28754964a7517a0602dfda0bad09adc938489a` | DJI UX SDK EULA / MIT sample boundary; no production code copied |
+| `dji-sdk/Mobile-UXSDK-Beta-Android` | `ed5ca45d118efbada6716f372b96dc5fe11e0620` | MIT repository; no production code copied because audited code is aircraft/camera UI/API code, not OM8 transport |
+
+The exact source findings are in research report
+`reports/27_DJI_UXSDK_FINAL_SOURCE_AUDIT.md`. These repositories are not
+runtime dependencies of Android-DJI-OM-Bridge.

@@ -177,6 +177,26 @@ wake-up, power-cycle, Gimbal READY, and Sony START/STOP regression completed on
 the target hardware. The raw-diagnostics UI/capture fix is independent of that
 transport result.
 
+## Final DJI phase closeout
+
+The OM8 passive decoder exposes the verified `04/57` fields: signed LE joystick
+X/Y, M state `0x03`, observed rear-trigger states `0x11`, `0x21`, `0x61`, and
+`0x71`, switch single/double `0x20`/`0x40`, side-wheel press bit `0x01`, and
+Record bit `0x08`. Joystick interpretation is deadzone/state-transition based;
+the parser does not claim more precise semantics for `0x61`/`0x71`. Only the
+Record rising edge is connected to the Sony action path.
+
+Side-wheel rotation is **UNSUPPORTED_NO_SAFE_PATH** for production decoding. It
+works in DJI Mimo, but repeated passive PC captures, Mimo-owned HCI/ATT channel
+analysis, corrected custom-notify timing, USB-C enumeration, and the final DJI
+UXSDK source audit found no safe external encoding or justified FFF5 activation
+sequence. Side-wheel press remains decoded and is not conflated with rotation.
+
+The final UXSDK audit is recorded in the research workspace as
+`reports/27_DJI_UXSDK_FINAL_SOURCE_AUDIT.md`. The UXSDK repositories provide
+camera-command/UI evidence such as lens-scoped focus-ring and touch-focus SDK
+calls, but no physical OM8 wheel origin. They are not production dependencies.
+
 The post-Phase-3B integration foundation keeps mappings profile-scoped and adds
 the explicit Edit Control Mappings and OM8 Raw Diagnostics controls. The
 normalized event model reserves press/hold/multi-press and continuous-axis forms

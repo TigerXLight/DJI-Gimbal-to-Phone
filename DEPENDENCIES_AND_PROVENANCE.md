@@ -52,3 +52,14 @@ See the synchronized research ledger for every repository, author, commit,
 licence, proposed target, and reuse classification:
 
 `T:\References\to go\Media\tools\Android-DJI-OM-Bridge-Research\provenance\ADAPTATION_LEDGER.json`
+
+## Final DJI UXSDK audit
+
+| Repository | Exact commit | Audited source | Local target | Adaptation | Licence | Validation |
+|---|---|---|---|---|---|---|
+| `dji-sdk/Mobile-UXSDK-Android` | `6a28754964a7517a0602dfda0bad09adc938489a` | `sample/app/.../CompleteWidgetActivity.java`, `CustomizedWidgetsActivity.java`, `LICENSE.txt` | none | RESEARCH_ONLY | DJI UX SDK EULA; sample MIT | No OM8 wheel origin; no source copied |
+| `dji-sdk/Mobile-UXSDK-Beta-Android` | `ed5ca45d118efbada6716f372b96dc5fe11e0620` | `ManualFocusModel.java`, `ManualFocusWidget.java`, `FocusModeWidgetModel.java`, `FPVInteractionWidgetModel.java`, `LICENSE.txt` | none | RESEARCH_ONLY | MIT | Focus/touch SDK command paths only; no OM8 wheel origin; no source copied |
+
+The complete audit, including URL, local path, branch, source methods, and the
+Mavic 2 Zoom versus Osmo Mobile distinction, is in
+`Android-DJI-OM-Bridge-Research/reports/27_DJI_UXSDK_FINAL_SOURCE_AUDIT.md`.

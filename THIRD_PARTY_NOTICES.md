@@ -1,5 +1,21 @@
 # Third-party notices
 
+## DJI Mobile UXSDK repositories audited, not incorporated
+
+The final source audit examined:
+
+- <https://github.com/dji-sdk/Mobile-UXSDK-Android> at
+  `6a28754964a7517a0602dfda0bad09adc938489a`. Its `LICENSE.txt` distinguishes
+  the DJI UX SDK EULA from MIT-licensed sample code `(c) 2018 DJI`.
+- <https://github.com/dji-sdk/Mobile-UXSDK-Beta-Android> at
+  `ed5ca45d118efbada6716f372b96dc5fe11e0620`, whose `LICENSE.txt` identifies
+  MIT and `(c) 2021 DJI`.
+
+No source, binary, or runtime dependency from either repository is included in
+this production project. The audit found DJI camera-command/UI paths such as
+focus-ring and touch-focus setters, but no physical OM8 wheel transport. See
+the research report for the file-level provenance and licence boundary.
+
 ## OpenGimbal mapping boundary
 
 Phase 3A partially adapts the mapping/persistence boundary from:

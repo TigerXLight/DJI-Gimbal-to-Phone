@@ -103,7 +103,13 @@ The service uses the API 26+ connectGatt overload with a main-looper handler, LE
 
 ## Event contract
 
-Phase 1 normalizes RECORD_DOWN and RECORD_UP. Future event types are reserved in the core enum but are not decoded or claimed as implemented. The Sony adapter handles only RECORD_DOWN; release never toggles Sony.
+The OM8 parser exposes the evidence-backed `04/57` joystick, M/trigger, switch,
+side-wheel-press, and Record fields. The driver still routes only the Record
+rising/falling edge into the active camera mapping; the other decoded fields
+remain observational until their state-transition semantics and safe camera
+mappings are independently validated. The Sony adapter handles only
+`RECORD_TOGGLE`; release never toggles Sony. Side-wheel rotation remains
+unresolved and is not represented by a guessed field.
 
 ## Phase 2B Learn Camera boundary
 

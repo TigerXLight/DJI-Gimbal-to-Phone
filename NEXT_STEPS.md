@@ -49,6 +49,16 @@ tapping, gimbal movement, or a public release from this baseline.
 17. Hardware-test any future Pixel/Samsung/Photography Pro backend independently.
     Keep Pixel selector evidence hardware-unverified and the ordinary-app
     Photography Pro camera-button path tested negative.
-18. Add only measured OM8 controller inputs to the normalized event model. Keep
-    the current Record edge immediate and do not add speculative transport writes.
+18. The final DJI phase is closed for the current evidence. The parser exposes
+    measured OM8 `04/57` fields, while only Record is mapped to Sony. Keep the
+    Record edge immediate and do not add speculative transport writes.
+
+19. Do not reopen OM8 side-wheel rotation research unless a new, higher-quality
+    external protocol trace or documented public interface appears. Current
+    status is `UNSUPPORTED_NO_SAFE_PATH`; side-wheel press remains decoded.
+
+20. The next active hardware project is **Insta360 Mic Pro <-> Mobile
+    synchronisation**. Start that work as a separate project and investigate
+    both USB data/protocol behavior and Bluetooth/wireless behavior from the
+    beginning.
 

@@ -42,7 +42,18 @@ public final class Om8RawDiagnosticFormatter {
                 frame[FLAGS_OFFSET] & 0xFF,
                 frame[COMMAND_SET_OFFSET] & 0xFF,
                 frame[COMMAND_ID_OFFSET] & 0xFF,
-                toHex(frame, PAYLOAD_OFFSET, frame.length - CRC_LENGTH));
+                toHex(frame, PAYLOAD_OFFSET, frame.length - CRC_LENGTH)
+                        + String.format(
+                        Locale.US,
+                        " joystickX=%d joystickY=%d modeTrigger=0x%02X switch=0x%02X "
+                                + "buttons=0x%02X recordDown=%s wheelPress=%s",
+                        result.getJoystickX(),
+                        result.getJoystickY(),
+                        result.getModeAndTriggerState(),
+                        result.getSwitchState(),
+                        result.getButtonState(),
+                        result.isRecordButtonDown(),
+                        result.isSideWheelPressState()));
     }
 
     public static String toHex(byte[] value) {

@@ -1,14 +1,15 @@
 # Supported hardware and software matrix
 
-Only evidence-backed entries are listed as tested. Phase 3A hardware regression has
-passed for the entries marked tested.
+Only evidence-backed entries are listed as tested. The final DJI phase preserves
+the real-device regression and distinguishes passive input decoding from camera
+action support.
 
 Phase 2A adds profile architecture only; it does not add a new camera-app support
 claim. Sony Video Pro remains the only hardware-tested camera application.
 
 | Category | Item | Driver/adapter | Protocol or behavior verified | Hardware status |
 | --- | --- | --- | --- | --- |
-| Gimbal | DJI Osmo Mobile 8 / OM8 | om8-driver | Direct BLE, FFF0/FFF4 DUML Record status, CCCD setup, recovery, automatic lifecycle driver path | Tested — Phase 3A PASS; Phase 3B background lifecycle pending |
+| Gimbal | DJI Osmo Mobile 8 / OM8 | om8-driver | Direct BLE, FFF0/FFF4 DUML status, CCCD setup, HIGH request, recovery, automatic lifecycle driver path | `HARDWARE_TESTED` — Phase 3A and Phase 3B PASS |
 | Phone | Sony Xperia 1 IV | Standard Android BLE + Accessibility APIs | Direct BLE and Sony Video Pro path | Tested — Phase 3A PASS |
 | Camera app | Sony Video Pro jp.co.sony.mc.videopro | sony-videopro | Exact recording node, ACTION_CLICK, rec_status verification | Tested — Phase 3A PASS |
 | Android release/version | Not recorded in the available Phase 1 source/frozen evidence | Android platform | The app build target SDK is not the handset Android release | Not claimed |
@@ -29,10 +30,10 @@ The built-in Sony profile records the already verified package/resource metadata
 profile's `HARDWARE_TESTED` status applies to the Sony/Xperia/OM8 path documented here,
 not to universal Android or camera-app compatibility.
 
-Phase 3B background association and automatic GATT wake-up are implemented but
-remain hardware-validation pending. The Phase 3A two-press Sony regression is a
-separate PASS and does not prove background wake-up after process recreation or a
-power cycle.
+Phase 3B background association and automatic GATT wake-up are hardware-tested
+PASS on the target Xperia/OM8 setup. The driver still owns the actual GATT
+connection and FFF4 subscription; Android association/pairing alone is not
+camera control.
 
 Learned profiles are discovery candidates only. `LEARNED`/unverified does not change
 this matrix and does not constitute support for the target camera application. A
@@ -49,4 +50,13 @@ hardware-tested.
   remain possible with explicit user validation.
 - Sony Photography Pro: ordinary-app `ACTION_CAMERA_BUTTON` broadcast is
   `TESTED_NEGATIVE`; privileged shell key injection is not a production backend.
+
+## OM8 control matrix
+
+See [`OM8_CONTROL_SUPPORT.md`](OM8_CONTROL_SUPPORT.md) for the detailed matrix.
+Record, joystick, M, trigger raw states, switch, and side-wheel press have
+evidence-backed passive `04/57` representations. Only Record is mapped to the
+hardware-tested Sony Video Pro action. Side-wheel **rotation** is explicitly
+`UNSUPPORTED_NO_SAFE_PATH` because no safe passive or Mimo-derived encoding was
+established.
 

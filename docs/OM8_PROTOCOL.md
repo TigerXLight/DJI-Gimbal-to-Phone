@@ -22,9 +22,27 @@ boolean recordDown = (payload[6] & 0x08) != 0;
 
 Only false-to-true creates RECORD_DOWN. True-to-false creates RECORD_UP for diagnostics/adapter observation and never creates a second recording action. Repeated heartbeat states are ignored for trigger purposes.
 
+The validated `04/57` payload also exposes passive control fields:
+
+- bytes 0--1: signed little-endian joystick X;
+- bytes 2--3: signed little-endian joystick Y;
+- byte 4: observed M/trigger states, including `0x03`, `0x11`, `0x21`,
+  `0x61`, and `0x71`;
+- byte 5: `0x20` switch single and `0x40` switch double;
+- byte 6 bit `0x01`: side-wheel press;
+- byte 6 bit `0x08`: Record.
+
+The Java parser exposes these values without assigning unsupported precision to
+the trigger states. Joystick normalization must use a deadzone and state
+transitions, not exact observed values. These additional fields are decoded
+for evidence and future mapping work; only the Record rising edge is currently
+routed to the Sony camera action. Side-wheel rotation has no verified passive
+encoding and is not decoded.
+
 ## Connection lifecycle
 
 The driver preserves direct scan/GATT operation, main-looper callbacks on API 26+, stale-GATT rejection, FFF0/FFF4/CCCD readiness, controlled scan retry/backoff, notification watchdog recovery, Bluetooth off/on recovery, and one CONNECTION_PRIORITY_HIGH request per genuine new GATT connection. The API boolean is not evidence of a changed connection interval; HCI evidence is required.
 
-No FFF5 command or movement/control packet is sent.
+No FFF5 command or movement/control packet is sent. The only GATT write is the
+standard FFF4 notification CCCD operation.
 

@@ -3,8 +3,10 @@ package com.androiddjibridge.om8;
 import java.util.Arrays;
 
 /**
- * Minimal, receive-only parser for the OM8 DUML status frame observed on FFF4.
- * It validates the frame structure and routing before exposing the record bit.
+ * Receive-only parser for the OM8 DUML status frame observed on FFF4.
+ * It validates the frame structure and routing before exposing the
+ * evidence-backed passive control fields. It does not send commands or infer
+ * an unmeasured side-wheel rotation field.
  */
 public final class Om8DumlStatusParser {
     public static final int FRAME_MARKER = 0x55;
@@ -13,6 +15,14 @@ public final class Om8DumlStatusParser {
     public static final int FLAGS = 0x40;
     public static final int COMMAND_SET = 0x04;
     public static final int COMMAND_ID = 0x57;
+    public static final int M_BUTTON_STATE = 0x03;
+    public static final int TRIGGER_STATE_SINGLE = 0x11;
+    public static final int TRIGGER_STATE_DOUBLE = 0x21;
+    public static final int TRIGGER_STATE_61 = 0x61;
+    public static final int TRIGGER_STATE_71 = 0x71;
+    public static final int SWITCH_STATE_SINGLE = 0x20;
+    public static final int SWITCH_STATE_DOUBLE = 0x40;
+    public static final int SIDE_WHEEL_PRESS_STATE = 0x01;
     public static final int RECORD_BIT = 0x08;
 
     private static final int LENGTH_OFFSET = 1;
@@ -70,29 +80,65 @@ public final class Om8DumlStatusParser {
         if (payloadLength < REQUIRED_PAYLOAD_LENGTH) {
             return Result.invalid("payload-too-short=" + payloadLength);
         }
-        int recByte = frame[PAYLOAD_OFFSET + 6] & 0xFF;
-        return Result.valid(frame, recByte);
+        int joystickX = signedLittleEndian16(frame, PAYLOAD_OFFSET);
+        int joystickY = signedLittleEndian16(frame, PAYLOAD_OFFSET + 2);
+        int modeByte = frame[PAYLOAD_OFFSET + 4] & 0xFF;
+        int triggerByte = modeByte;
+        int switchByte = frame[PAYLOAD_OFFSET + 5] & 0xFF;
+        int buttonByte = frame[PAYLOAD_OFFSET + 6] & 0xFF;
+        return Result.valid(frame, joystickX, joystickY, modeByte, triggerByte,
+                switchByte, buttonByte);
+    }
+
+    private static int signedLittleEndian16(byte[] value, int offset) {
+        int unsigned = (value[offset] & 0xFF) | ((value[offset + 1] & 0xFF) << 8);
+        return unsigned >= 0x8000 ? unsigned - 0x10000 : unsigned;
     }
 
     public static final class Result {
         private final boolean valid;
         private final String reason;
         private final byte[] frame;
-        private final int recordByte;
+        private final int joystickX;
+        private final int joystickY;
+        private final int modeByte;
+        private final int triggerByte;
+        private final int switchByte;
+        private final int buttonByte;
 
-        private Result(boolean valid, String reason, byte[] frame, int recordByte) {
+        private Result(boolean valid,
+                       String reason,
+                       byte[] frame,
+                       int joystickX,
+                       int joystickY,
+                       int modeByte,
+                       int triggerByte,
+                       int switchByte,
+                       int buttonByte) {
             this.valid = valid;
             this.reason = reason;
             this.frame = frame;
-            this.recordByte = recordByte;
+            this.joystickX = joystickX;
+            this.joystickY = joystickY;
+            this.modeByte = modeByte;
+            this.triggerByte = triggerByte;
+            this.switchByte = switchByte;
+            this.buttonByte = buttonByte;
         }
 
-        private static Result valid(byte[] frame, int recordByte) {
-            return new Result(true, "", frame, recordByte);
+        private static Result valid(byte[] frame,
+                                    int joystickX,
+                                    int joystickY,
+                                    int modeByte,
+                                    int triggerByte,
+                                    int switchByte,
+                                    int buttonByte) {
+            return new Result(true, "", frame, joystickX, joystickY, modeByte,
+                    triggerByte, switchByte, buttonByte);
         }
 
         private static Result invalid(String reason) {
-            return new Result(false, reason, null, 0);
+            return new Result(false, reason, null, 0, 0, 0, 0, 0, 0);
         }
 
         public boolean isValid() {
@@ -107,12 +153,77 @@ public final class Om8DumlStatusParser {
             return frame == null ? null : frame.clone();
         }
 
+        /** Signed little-endian joystick X value from payload bytes 0..1. */
+        public int getJoystickX() {
+            return joystickX;
+        }
+
+        /** Signed little-endian joystick Y value from payload bytes 2..3. */
+        public int getJoystickY() {
+            return joystickY;
+        }
+
+        /** Raw payload byte 4. Its observed values include the M/trigger states. */
+        public int getModeAndTriggerState() {
+            return modeByte;
+        }
+
+        /** Alias retaining the evidence terminology used by the capture reports. */
+        public int getTriggerState() {
+            return triggerByte;
+        }
+
+        /** Raw payload byte 5. */
+        public int getSwitchState() {
+            return switchByte;
+        }
+
+        /** Raw payload byte 6, including side-wheel press and Record bits. */
+        public int getButtonState() {
+            return buttonByte;
+        }
+
+        public boolean isMButtonState() {
+            return valid && modeByte == M_BUTTON_STATE;
+        }
+
+        public boolean isObservedTriggerState() {
+            return valid && (triggerByte == TRIGGER_STATE_SINGLE
+                    || triggerByte == TRIGGER_STATE_DOUBLE
+                    || triggerByte == TRIGGER_STATE_61
+                    || triggerByte == TRIGGER_STATE_71);
+        }
+
+        public boolean isSwitchSingleState() {
+            return valid && switchByte == SWITCH_STATE_SINGLE;
+        }
+
+        public boolean isSwitchDoubleState() {
+            return valid && switchByte == SWITCH_STATE_DOUBLE;
+        }
+
+        public boolean isSideWheelPressState() {
+            return valid && (buttonByte & SIDE_WHEEL_PRESS_STATE) != 0;
+        }
+
+        /**
+         * Applies a deadzone to the measured joystick axes. Callers should use
+         * this for state transitions; exact observed magnitudes are not an API.
+         */
+        public boolean isJoystickNeutral(int deadzone) {
+            if (!valid || deadzone < 0) {
+                return false;
+            }
+            return Math.abs((long) joystickX) <= deadzone
+                    && Math.abs((long) joystickY) <= deadzone;
+        }
+
         public int getRecordByte() {
-            return recordByte;
+            return buttonByte;
         }
 
         public boolean isRecordButtonDown() {
-            return valid && (recordByte & RECORD_BIT) != 0;
+            return valid && (buttonByte & RECORD_BIT) != 0;
         }
     }
 }

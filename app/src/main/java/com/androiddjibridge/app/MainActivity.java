@@ -542,7 +542,7 @@ public final class MainActivity extends Activity {
         for (CameraProfile profile : profiles) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.VERTICAL);
-            row.setPadding(0, 2, 0, 2);
+            row.setPadding(0, 0, 0, 6);
             TextView description = new TextView(this);
             description.setText(profile.getDisplayName());
             description.setTextSize(16f);
@@ -552,11 +552,11 @@ public final class MainActivity extends Activity {
                 showMappingEditor(profile);
             });
             row.addView(description, matchWrap());
-            Button mappings = new Button(this);
+            TextView mappings = new TextView(this);
             mappings.setText("Mappings");
-            styleCompactButton(mappings, true);
             mappings.setTextSize(13f);
-            mappings.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
+            mappings.setTextColor(Color.rgb(25, 85, 150));
+            mappings.setPadding(0, 1, 0, 0);
             mappings.setOnClickListener(view -> {
                 application.selectProfile(profile.getStableId());
                 showMappingEditor(profile);

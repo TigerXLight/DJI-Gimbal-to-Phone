@@ -5,14 +5,15 @@ Date: 2026-10-25
 ## Scope
 
 This review covers every tracked file in the Android-DJI-OM-Bridge production
-repository at commit `96ef00fe517b0a93ad4a60fd0bf1e24c29a41d4f` and the complete
-reachable Git history (`16` commits). It is a source-publication review, not a
+repository at commit `773a3c8239aaecfc5b58ca4f1c9004c5634f64a2` and the complete
+reachable Git history. It is a source-publication review, not a
 hardware or penetration test. Ignored local capture directories were checked
 for tracking status but are not part of the public source tree.
 
 ## Findings and fixes
 
-The working tree contained no real OM8 address, credentials, access tokens,
+The working tree contained no OM8 device address as device data, credentials,
+access tokens,
 raw bugreports, raw HCI archives, private project-memory files, or private
 research binaries in tracked files. The observed hardware address was not
 found in the current tree or any reachable commit. The synthetic
@@ -81,12 +82,14 @@ Run from the repository root before creating a public archive:
 
 ```powershell
 git ls-files
-rg -n -i -S 'C3:64:07:00:83:7B|T:\\References|C:\\Users|\.codex-remote-attachments|PROJECT_MEMORY|FROZEN_REFERENCE' (git ls-files)
+rg -n -i -S 'C:\\Users|\.codex-remote-attachments|PROJECT_MEMORY|FROZEN_REFERENCE' (git ls-files)
 git status --short --ignored
 git log --all --format='%H %an <%ae> %s'
 ```
 
-The second command should be reviewed rather than blindly treated as a zero
-match rule: research/freeze terms may be appropriate in sanitized historical
-documentation, while personal filesystem paths and device identifiers are
-not.
+The audit document intentionally contains generic search-pattern terms. It does
+not contain the observed hardware address or a concrete private filesystem
+path. The command should still be reviewed rather than blindly treated as a
+zero-match rule: research/freeze terms may be appropriate in sanitized
+historical documentation, while personal filesystem paths and device
+identifiers are not.

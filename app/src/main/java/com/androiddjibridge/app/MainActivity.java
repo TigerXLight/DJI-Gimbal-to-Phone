@@ -221,7 +221,7 @@ public final class MainActivity extends Activity {
         cameraHeading.setTextSize(18f);
         cameraHeading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         cameraHeading.setTextColor(Color.BLACK);
-        cameraHeading.setPadding(0, 16, 0, 4);
+        cameraHeading.setPadding(0, 16, 0, 12);
         root.addView(cameraHeading, matchWrap());
         cameraAppsContainer = new LinearLayout(this);
         cameraAppsContainer.setOrientation(LinearLayout.VERTICAL);

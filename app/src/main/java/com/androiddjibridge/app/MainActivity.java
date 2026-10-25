@@ -56,6 +56,7 @@ public final class MainActivity extends Activity {
     private Button diagnosticsButton;
     private TextView gimbalDevice;
     private LinearLayout deviceSection;
+    private LinearLayout deviceIdentity;
     private Button findGimbalButton;
     private Button disconnectButton;
     private Button forgetGimbalButton;
@@ -149,7 +150,7 @@ public final class MainActivity extends Activity {
         scroll.addView(root);
 
         TextView title = new TextView(this);
-        title.setText("DJI Gimbal Bridge");
+        title.setText("DJI Gimbal Pairing");
         title.setTextSize(24f);
         title.setTextColor(Color.BLACK);
         root.addView(title, matchWrap());
@@ -163,19 +164,23 @@ public final class MainActivity extends Activity {
 
         deviceSection = new LinearLayout(this);
         deviceSection.setOrientation(LinearLayout.VERTICAL);
-        deviceSection.setPadding(16, 12, 16, 12);
+        deviceSection.setPadding(0, 0, 0, 8);
         root.addView(deviceSection, matchWrap());
 
         TextView gimbalHeading = new TextView(this);
-        gimbalHeading.setText("Device");
+        gimbalHeading.setText("DJI Gimbal");
         gimbalHeading.setTextSize(17f);
         gimbalHeading.setTextColor(Color.BLACK);
-        gimbalHeading.setPadding(0, 0, 0, 4);
+        gimbalHeading.setPadding(0, 0, 0, 6);
         deviceSection.addView(gimbalHeading, matchWrap());
 
+        deviceIdentity = new LinearLayout(this);
+        deviceIdentity.setOrientation(LinearLayout.VERTICAL);
+        deviceIdentity.setPadding(12, 8, 12, 8);
+        deviceSection.addView(deviceIdentity, matchWrap());
         gimbalDevice = new TextView(this);
         gimbalDevice.setTextSize(15f);
-        deviceSection.addView(gimbalDevice, matchWrap());
+        deviceIdentity.addView(gimbalDevice, matchWrap());
         status = new TextView(this);
         status.setTextSize(13f);
         status.setTextColor(Color.DKGRAY);
@@ -185,6 +190,7 @@ public final class MainActivity extends Activity {
         findGimbalButton = new Button(this);
         findGimbalButton.setText("Find DJI Gimbal");
         styleCompactButton(findGimbalButton, false);
+        findGimbalButton.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
         findGimbalButton.setOnClickListener(view -> associateOm8());
         deviceSection.addView(findGimbalButton, matchWrap());
 
@@ -194,12 +200,15 @@ public final class MainActivity extends Activity {
         disconnectButton.setText("Disconnect");
         styleCompactButton(disconnectButton, true);
         disconnectButton.setOnClickListener(view -> stopBridge());
-        deviceActions.addView(disconnectButton, weightedWrap(1f));
+        deviceActions.addView(disconnectButton, wrapWrap());
+        TextView actionGap = new TextView(this);
+        actionGap.setText("  ");
+        deviceActions.addView(actionGap, wrapWrap());
         forgetGimbalButton = new Button(this);
         forgetGimbalButton.setText("Forget");
         styleCompactButton(forgetGimbalButton, true);
         forgetGimbalButton.setOnClickListener(view -> forgetGimbal());
-        deviceActions.addView(forgetGimbalButton, weightedWrap(1f));
+        deviceActions.addView(forgetGimbalButton, wrapWrap());
         deviceSection.addView(deviceActions, matchWrap());
 
         accessibilityHint = new TextView(this);
@@ -227,22 +236,14 @@ public final class MainActivity extends Activity {
         Button addCamera = new Button(this);
         addCamera.setText("+ Add camera app");
         styleCompactButton(addCamera, true);
+        addCamera.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
         addCamera.setOnClickListener(view -> chooseCameraApplication());
-        root.addView(addCamera, matchWrap());
-        Button learn = new Button(this);
-        learn.setText("Learn a camera app");
-        styleCompactButton(learn, true);
-        learn.setOnClickListener(view -> chooseLearningTarget());
-        root.addView(learn, matchWrap());
-        learningStatus = new TextView(this);
-        learningStatus.setTextSize(13f);
-        learningStatus.setTextColor(Color.DKGRAY);
-        learningStatus.setPadding(0, 6, 0, 0);
-        root.addView(learningStatus, matchWrap());
+        root.addView(addCamera, wrapWrap());
 
         Button advanced = new Button(this);
         advanced.setText("Advanced & diagnostics   ›");
         styleCompactButton(advanced, true);
+        advanced.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
         advanced.setOnClickListener(view -> {
             advancedExpanded = !advancedExpanded;
             advancedContainer.setVisibility(advancedExpanded ? ViewGroup.VISIBLE : ViewGroup.GONE);
@@ -252,6 +253,12 @@ public final class MainActivity extends Activity {
         advancedContainer.setOrientation(LinearLayout.VERTICAL);
         advancedContainer.setVisibility(ViewGroup.GONE);
         root.addView(advancedContainer, matchWrap());
+
+        learningStatus = new TextView(this);
+        learningStatus.setTextSize(13f);
+        learningStatus.setTextColor(Color.DKGRAY);
+        learningStatus.setPadding(0, 6, 0, 0);
+        advancedContainer.addView(learningStatus, matchWrap());
 
         diagnosticsState = new TextView(this);
         diagnosticsState.setTextSize(13f);
@@ -365,11 +372,6 @@ public final class MainActivity extends Activity {
         stop.setOnClickListener(view -> stopBridge());
         root.addView(stop, matchWrap());
 
-        Button learn = new Button(this);
-        learn.setText("Learn Camera");
-        learn.setOnClickListener(view -> chooseLearningTarget());
-        root.addView(learn, matchWrap());
-
         Button mappings = new Button(this);
         mappings.setText("Edit Control Mappings");
         mappings.setOnClickListener(view -> showMappingEditor());
@@ -475,7 +477,7 @@ public final class MainActivity extends Activity {
         gimbalDevice.setText(associated == null
                 ? "No DJI gimbal selected" : deviceName);
         status.setText(simpleConnectionState(snapshot, associated));
-        deviceSection.setBackgroundColor(snapshot.isConnected()
+        deviceIdentity.setBackgroundColor(snapshot.isConnected()
                 ? Color.rgb(220, 238, 255) : Color.TRANSPARENT);
         gimbalDevice.setTextSize(snapshot.isConnected() ? 16f : 17f);
         disconnectButton.setTextSize(13f);
@@ -535,8 +537,7 @@ public final class MainActivity extends Activity {
         }
         for (CameraProfile profile : profiles) {
             LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setOrientation(LinearLayout.VERTICAL);
             row.setPadding(0, 4, 0, 4);
             TextView description = new TextView(this);
             description.setText(profile.getDisplayName());
@@ -546,10 +547,12 @@ public final class MainActivity extends Activity {
                 application.selectProfile(profile.getStableId());
                 showMappingEditor(profile);
             });
-            row.addView(description, weightedWrap(1f));
+            row.addView(description, matchWrap());
             Button mappings = new Button(this);
             mappings.setText("Mappings");
             styleCompactButton(mappings, true);
+            mappings.setTextSize(13f);
+            mappings.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
             mappings.setOnClickListener(view -> {
                 application.selectProfile(profile.getStableId());
                 showMappingEditor(profile);
@@ -591,24 +594,6 @@ public final class MainActivity extends Activity {
                         + "Accessibility-visible Record control, then review it before saving.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Learn this app", (dialog, which) -> startLearning(choice))
-                .show();
-    }
-
-    private void chooseLearningTarget() {
-        List<CameraApplicationDiscovery.Candidate> choices = installedApplicationChoices();
-        if (choices.isEmpty()) {
-            updateLearningStatus("No eligible camera applications found.");
-            return;
-        }
-        CharSequence[] labels = new CharSequence[choices.size()];
-        for (int index = 0; index < choices.size(); index++) {
-            labels[index] = discoveryLabel(choices.get(index));
-        }
-        new AlertDialog.Builder(this)
-                .setTitle("Select application to learn")
-                .setItems(labels, (dialog, which) -> startLearning(choices.get(which)))
-                .setNegativeButton("Cancel",
-                        (dialog, which) -> VideoProKeyAccessibilityService.cancelLearning())
                 .show();
     }
 
@@ -1062,13 +1047,6 @@ public final class MainActivity extends Activity {
             button.setBackgroundColor(Color.TRANSPARENT);
             button.setTextColor(Color.rgb(25, 85, 150));
         }
-    }
-
-    private ViewGroup.LayoutParams weightedWrap(float weight) {
-        return new LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                weight);
     }
 
     private ViewGroup.LayoutParams wrapWrap() {
